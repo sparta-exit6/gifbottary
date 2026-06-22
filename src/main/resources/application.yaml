@@ -1,6 +1,6 @@
 spring:
   application:
-    name: temp
+    name: gifbottary
   jpa:
     show-sql: true
     properties:
