@@ -35,3 +35,15 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Mac OS
+.DS_Store
+
+# AI
+.codex/
+AGENTS.md
+.claude/
+CLAUDE.md
+
+# Local Spring profile file - keep local DB config out of VCS
+src/main/resources/application-local.yaml
