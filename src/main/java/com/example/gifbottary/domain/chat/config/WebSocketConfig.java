@@ -1,4 +1,4 @@
-package com.example.gifbottary.chat.config;
+package com.example.gifbottary.domain.chat.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

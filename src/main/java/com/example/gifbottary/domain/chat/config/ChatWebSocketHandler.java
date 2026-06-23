@@ -1,4 +1,4 @@
-package com.example.gifbottary.chat.config;
+package com.example.gifbottary.domain.chat.config;
 
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
