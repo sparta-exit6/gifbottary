@@ -38,6 +38,15 @@ public class Purchase extends BaseEntity {
 
     private Boolean refundLocked;
 
+    @Column(nullable = false)
+    private int quantity;
+
+    @Column(name = "unit_Price", nullable = false)
+    private int unitPrice;
+
+    @Column(name = "total_price", nullable = false)
+    private int totalPrice;
+
     private LocalDateTime purchasedAt;
 
     private LocalDateTime confirmedAt;
