@@ -22,21 +22,17 @@ public class GifticonSale extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //구매자
-    @JoinColumn(name = "buyer_id", nullable = false)
+    @JoinColumn(name = "seller_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private User buyer;
+    private User seller;
 
-    //주문 대상 : 기프티콘 판매글
     @JoinColumn(name = "product_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private GifticonProduct product;
 
-    //주문 방식 : 플랫폼 or 중고 (개인)
     @Enumerated(EnumType.STRING)
     private SaleType saleType;
 
-    //
     @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;
 

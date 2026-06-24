@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.example.gifbottary.common.entity.BaseEntity;
 import com.example.gifbottary.domain.order.entity.Order;
+import com.example.gifbottary.domain.purchase.entity.Purchase;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,8 +32,8 @@ public class Payment extends BaseEntity {
 	private Long id;
 
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "order_id", nullable = false, unique = true)
-	private Order order;
+	@JoinColumn(name = "purchase_id", nullable = false, unique = true)
+	private Purchase purchase;
 
 	@Column(name = "portone_payment_id", nullable = false, unique = true)
 	private String portOnePaymentId;
@@ -51,9 +52,9 @@ public class Payment extends BaseEntity {
 	@Column(name = "cancelled_at")
 	private LocalDateTime cancelledAt;
 
-	public Payment(Order order) {
-		this.order = order;
-		this.amount = order.getTotalPrice();
+	public Payment(Purchase purchase) {
+		this.purchase = purchase;
+		this.amount = purchase.getTotalPrice();
 		this.portOnePaymentId = generatePortOnePaymentId();
 	}
 
