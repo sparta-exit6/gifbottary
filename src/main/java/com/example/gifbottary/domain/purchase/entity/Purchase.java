@@ -41,15 +41,80 @@ public class Purchase extends BaseEntity {
     @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "unit_Price", nullable = false)
+    @Column(nullable = false)
     private int unitPrice;
 
-    @Column(name = "total_price", nullable = false)
+    @Column(nullable = false)
     private int totalPrice;
 
     private LocalDateTime purchasedAt;
 
     private LocalDateTime confirmedAt;
+
+    public static Purchase create(
+        User buyer,
+        GifticonSale sale,
+        int quantity
+    ) {
+        Purchase purchase = new Purchase();
+
+        purchase.buyer = buyer;
+        purchase.sale = sale;
+
+        purchase.quantity = quantity;
+        purchase.unitPrice = sale.getSalePrice();
+        purchase.totalPrice = quantity * sale.getSalePrice();
+
+        purchase.purchaseStatus = PurchaseStatus.PENDING_PAYMENT;
+        purchase.pinStatus = PinStatus.MASKED;
+        purchase.refundLocked = false;
+
+        return purchase;
+    }
+
+    /**
+     * 결제 완료
+     */
+    public void completePayment() {
+        this.purchaseStatus = PurchaseStatus.PAID;
+        this.purchasedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 플랫폼 상품 구매 확정
+     */
+    public void confirmPurchase() {
+        this.pinStatus = PinStatus.REVEALED;
+        this.refundLocked = true;
+        this.purchaseStatus = PurchaseStatus.CONFIRMED;
+        this.confirmedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 중고 상품 구매확정(즉시)
+     */
+    public void confirmPersonalPurchase() {
+        this.purchaseStatus = PurchaseStatus.CONFIRMED;
+        this.pinStatus = PinStatus.REVEALED;
+        this.refundLocked = true;
+
+        this.purchasedAt = LocalDateTime.now();
+        this.confirmedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 환불
+     */
+    public void cancel() {
+        this.purchaseStatus = PurchaseStatus.REFUNDED;
+    }
+
+    /**
+     * 권한 검증
+     */
+    public boolean isOwner(Long userId) {
+        return buyer.getId().equals(userId);
+    }
 
     public static Purchase createPlatformPurchase(User buyer, GifticonSale sale) {
         Purchase purchase = new Purchase();
@@ -62,30 +127,30 @@ public class Purchase extends BaseEntity {
         return purchase;
     }
 
-    public static Purchase createPersonalPurchase(User buyer, GifticonSale sale) {
-        Purchase purchase = new Purchase();
-        purchase.buyer = buyer;
-        purchase.sale = sale;
-        purchase.purchaseStatus = PurchaseStatus.CONFIRMED;
-        purchase.pinStatus = PinStatus.REVEALED;
-        purchase.refundLocked = true;
-        purchase.purchasedAt = LocalDateTime.now();
-        purchase.confirmedAt = LocalDateTime.now();
-        return purchase;
-    }
-
-    public void revealPin() {
-        this.pinStatus = PinStatus.REVEALED;
-        this.refundLocked = true;
-        this.purchaseStatus = PurchaseStatus.CONFIRMED;
-        this.confirmedAt = LocalDateTime.now();
-    }
-
-    public boolean isConfirmed() {
-        return this.purchaseStatus == PurchaseStatus.CONFIRMED;
-    }
-
-    public boolean isMasked() {
-        return this.pinStatus == PinStatus.MASKED;
-    }
+    // public static Purchase createPersonalPurchase(User buyer, GifticonSale sale) {
+    //     Purchase purchase = new Purchase();
+    //     purchase.buyer = buyer;
+    //     purchase.sale = sale;
+    //     purchase.purchaseStatus = PurchaseStatus.CONFIRMED;
+    //     purchase.pinStatus = PinStatus.REVEALED;
+    //     purchase.refundLocked = true;
+    //     purchase.purchasedAt = LocalDateTime.now();
+    //     purchase.confirmedAt = LocalDateTime.now();
+    //     return purchase;
+    // }
+    //
+    // public void revealPin() {
+    //     this.pinStatus = PinStatus.REVEALED;
+    //     this.refundLocked = true;
+    //     this.purchaseStatus = PurchaseStatus.CONFIRMED;
+    //     this.confirmedAt = LocalDateTime.now();
+    // }
+    //
+    // public boolean isConfirmed() {
+    //     return this.purchaseStatus == PurchaseStatus.CONFIRMED;
+    // }
+    //
+    // public boolean isMasked() {
+    //     return this.pinStatus == PinStatus.MASKED;
+    // }
 }
