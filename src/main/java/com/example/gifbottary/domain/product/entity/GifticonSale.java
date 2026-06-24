@@ -13,7 +13,7 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "giftion-sale")
+@Table(name = "gifticon_sale")
 @NoArgsConstructor
 public class GifticonSale extends BaseEntity {
     @Id
