@@ -18,7 +18,7 @@ public class GifticonProduct  extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @C0lumn(nullable = false)
+    @Column(nullable = false)
     private String brand;
     
     @Column(name = "product_name", nullable = false)

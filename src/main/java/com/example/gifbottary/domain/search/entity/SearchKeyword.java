@@ -1,7 +1,7 @@
 package com.example.gifbottary.domain.search.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
-import com.example.gifbottary.domain.User;
+import com.example.gifbottary.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
