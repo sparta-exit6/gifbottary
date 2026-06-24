@@ -1,7 +1,8 @@
 package com.example.gifbottary.domain.product.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
-import com.example.gifbottary.domain.Users;
+import com.example.gifbottary.domain.user.entity.User;
+import com.example.gifbottary.domain.product.enums.PinValidationStatus;
 import com.example.gifbottary.domain.product.enums.SaleStatus;
 import com.example.gifbottary.domain.product.enums.SaleType;
 import jakarta.persistence.*;
@@ -23,7 +24,7 @@ public class GifticonSale extends BaseEntity {
 
     @JoinColumn(name = "seller_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Users seller;
+    private User seller;
 
     @JoinColumn(name = "product_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -44,7 +45,7 @@ public class GifticonSale extends BaseEntity {
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<GifticonPin> pins = new ArrayList<>();
 
-    public GifticonSale(Users seller, GifticonProduct product, SaleType saleType, Integer salePrice, LocalDate expireAt, Integer stock) {
+    public GifticonSale(User seller, GifticonProduct product, SaleType saleType, Integer salePrice, LocalDate expireAt, Integer stock) {
         validateStockBySaleType(saleType, stock);
         this.seller = seller;
         this.product = product;

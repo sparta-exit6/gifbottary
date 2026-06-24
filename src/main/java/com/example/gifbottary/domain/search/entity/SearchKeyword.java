@@ -1,7 +1,7 @@
 package com.example.gifbottary.domain.search.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
-import com.example.gifbottary.domain.Users;
+import com.example.gifbottary.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,7 +23,7 @@ public class SearchKeyword extends BaseEntity {
 
     @JoinColumn(name = "user_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    private Users user;
+    private User user;
 
     private String keyword;
 
@@ -31,7 +31,7 @@ public class SearchKeyword extends BaseEntity {
 
     private LocalDateTime lastSearchedAt;
 
-    public SearchKeyword(Users user, String keyword) {
+    public SearchKeyword(User user, String keyword) {
         this.user = user;
         this.keyword = keyword;
         this.searchCount = 1;
