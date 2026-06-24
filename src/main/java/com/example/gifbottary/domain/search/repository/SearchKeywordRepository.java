@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface SearchKeywordRepository extends JpaRepository<SearchKeyword, Long> {
 
-    List<SearchKeyword> findTop10ByUserIdOrderByLastSearchedAtDesc(Long userId);
+    List<SearchKeyword> findTop10ByUser_IdOrderByLastSearchedAtDesc(Long userId);
 
-    Optional<SearchKeyword> findByUserIdAndKeyword(Long userId, String keyword);
+    Optional<SearchKeyword> findByUser_IdAndKeyword(Long userId, String keyword);
 
-    void deleteByUserIdAndKeyword(Long userId, String keyword);
+    void deleteByUser_IdAndKeyword(Long userId, String keyword);
 
-    void deleteAllByUserId(Long userId);
+    void deleteAllByUser_Id(Long userId);
 }

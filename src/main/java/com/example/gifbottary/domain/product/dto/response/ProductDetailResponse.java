@@ -17,7 +17,6 @@ public record ProductDetailResponse(
         Integer salePrice,
         Integer stock,
         String saleStatus,
-        String pinValidationStatus,
         String imageUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -35,7 +34,6 @@ public record ProductDetailResponse(
                 sale.getSalePrice(),
                 sale.getStock(),
                 sale.getSaleStatus().name(),
-                sale.getPinCheckStatus().name(),
                 sale.getProduct().getImageUrl(),
                 sale.getCreatedAt(),
                 sale.getUpdatedAt()

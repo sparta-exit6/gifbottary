@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -34,37 +36,24 @@ public class GifticonSale extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;
 
-    private String encryptedPin;
-
-    @Enumerated(EnumType.STRING)
-    private PinValidationStatus pinCheckStatus;
-
     private Integer salePrice;
 
     private LocalDate expireAt;
 
     private Integer stock;
 
-    public GifticonSale(User seller, GifticonProduct product, SaleType saleType, String encryptedPin, Integer salePrice, LocalDate expireAt, Integer stock) {
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<GifticonPin> pins = new ArrayList<>();
+
+    public GifticonSale(User seller, GifticonProduct product, SaleType saleType, Integer salePrice, LocalDate expireAt, Integer stock) {
+        validateStockBySaleType(saleType, stock);
         this.seller = seller;
         this.product = product;
         this.saleType = saleType;
-        this.encryptedPin = encryptedPin;
         this.salePrice = salePrice;
         this.expireAt = expireAt;
         this.stock = stock;
         this.saleStatus = SaleStatus.PENDING_REVIEW;
-        this.pinCheckStatus = PinValidationStatus.PENDING;
-    }
-
-    public void validateSuccess() {
-        this.pinCheckStatus = PinValidationStatus.VALID;
-        this.saleStatus = SaleStatus.ON_SALE;
-    }
-
-    public void validateFail() {
-        this.pinCheckStatus = PinValidationStatus.INVALID;
-        this.saleStatus = SaleStatus.PIN_INVALID;
     }
 
     public void updateSaleInfo(Integer salePrice, LocalDate expireAt, Integer stock) {
@@ -75,7 +64,34 @@ public class GifticonSale extends BaseEntity {
             this.expireAt = expireAt;
         }
         if (stock != null) {
+            validateStockBySaleType(this.saleType, stock);
             this.stock = stock;
+        }
+    }
+
+    public void addPin(GifticonPin pin) {
+        this.pins.add(pin);
+        pin.assignSale(this);
+    }
+
+    public void removePin(GifticonPin pin) {
+        this.pins.remove(pin);
+        pin.removeSale();
+    }
+
+    public void increaseStock() {
+        this.stock += 1;
+    }
+
+    public void deductStock() {
+        if (this.stock == null || this.stock < 1) {
+            throw new IllegalStateException("차감할 재고가 없습니다.");
+        }
+
+        this.stock -= 1;
+
+        if (this.stock == 0) {
+            completeSale();
         }
     }
 
@@ -85,5 +101,24 @@ public class GifticonSale extends BaseEntity {
 
     public void cancelSale() {
         this.saleStatus = SaleStatus.CANCELLED;
+    }
+
+    public void updateSaleStatusByStock() {
+        if (this.stock != null && this.stock > 0) {
+            this.saleStatus = SaleStatus.ON_SALE;
+            return;
+        }
+
+        this.saleStatus = SaleStatus.SOLD_OUT;
+    }
+
+    private void validateStockBySaleType(SaleType saleType, Integer stock) {
+        if (stock == null || stock < 1) {
+            throw new IllegalArgumentException("stock은 1 이상이어야 합니다.");
+        }
+
+        if (saleType == SaleType.PERSONAL && stock != 1) {
+            throw new IllegalArgumentException("개인 판매 상품의 stock은 반드시 1이어야 합니다.");
+        }
     }
 }
