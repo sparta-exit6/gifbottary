@@ -5,6 +5,7 @@ import com.example.gifbottary.domain.auth.dto.response.SignupResponse;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +24,15 @@ public class AuthService {
             throw new IllegalArgumentException("이미 가입된 이메일입니다.");
         }
 
-        User user = request.toEntity(passwordEncoder);
+        try {
+            User user = request.toEntity(passwordEncoder);
 
-        User savedUser = userRepository.save(user);
+            User savedUser = userRepository.save(user);
 
-        return SignupResponse.from(savedUser);
+            return SignupResponse.from(savedUser);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+        }
     }
 }
