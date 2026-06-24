@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.example.gifbottary.common.entity.BaseEntity;
-import com.example.gifbottary.domain.order.entity.Order;
 import com.example.gifbottary.domain.purchase.entity.Purchase;
 
 import jakarta.persistence.Column;
