@@ -23,12 +23,12 @@ public class SignupRequest {
     private String name;
 
     public User toEntity(PasswordEncoder passwordEncoder) {
-        return new User(
-                email,
-                passwordEncoder.encode(password),
-                name,
-                "USER",
-                0
-        );
+        return User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .name(name)
+                .role("USER")
+                .pointBalance(0)
+                .build();
     }
 }
