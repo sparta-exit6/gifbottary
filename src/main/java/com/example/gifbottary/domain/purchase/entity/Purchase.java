@@ -1,7 +1,7 @@
 package com.example.gifbottary.domain.purchase.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
-import com.example.gifbottary.domain.User;
+import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.purchase.enums.PinStatus;
 import com.example.gifbottary.domain.purchase.enums.PurchaseStatus;
