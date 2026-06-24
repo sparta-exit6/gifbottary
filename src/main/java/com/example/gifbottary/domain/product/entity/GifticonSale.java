@@ -2,7 +2,7 @@ package com.example.gifbottary.domain.product.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
 import com.example.gifbottary.domain.User;
-import com.example.gifbottary.domain.product.enums.PinValidateionStatus;
+import com.example.gifbottary.domain.product.enums.PinValidationStatus;
 import com.example.gifbottary.domain.product.enums.SaleStatus;
 import com.example.gifbottary.domain.product.enums.SaleType;
 import jakarta.persistence.*;
@@ -37,7 +37,7 @@ public class GifticonSale extends BaseEntity {
     private String encryptedPin;
 
     @Enumerated(EnumType.STRING)
-    private PinValidateionStatus pinCheckStatus;
+    private PinValidationStatus pinCheckStatus;
 
     private Integer salePrice;
 
@@ -54,16 +54,16 @@ public class GifticonSale extends BaseEntity {
         this.expireAt = expireAt;
         this.stock = stock;
         this.saleStatus = SaleStatus.PENDING_REVIEW;
-        this.pinCheckStatus = PinValidateionStatus.PENDING;
+        this.pinCheckStatus = PinValidationStatus.PENDING;
     }
 
     public void validateSuccess() {
-        this.pinCheckStatus = PinValidateionStatus.VALID;
+        this.pinCheckStatus = PinValidationStatus.VALID;
         this.saleStatus = SaleStatus.ON_SALE;
     }
 
     public void validateFail() {
-        this.pinCheckStatus = PinValidateionStatus.INVALID;
+        this.pinCheckStatus = PinValidationStatus.INVALID;
         this.saleStatus = SaleStatus.PIN_INVALID;
     }
 
