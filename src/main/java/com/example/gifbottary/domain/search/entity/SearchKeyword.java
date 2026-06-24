@@ -11,7 +11,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "search_keyword")
+@Table(name = "search_keyword", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_search_keyword_user_keyword", columnNames = {"user_id", "keyword"})
+    })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SearchKeyword extends BaseEntity {
 
