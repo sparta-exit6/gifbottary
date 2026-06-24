@@ -116,16 +116,16 @@ public class Purchase extends BaseEntity {
         return buyer.getId().equals(userId);
     }
 
-    public static Purchase createPlatformPurchase(User buyer, GifticonSale sale) {
-        Purchase purchase = new Purchase();
-        purchase.buyer = buyer;
-        purchase.sale = sale;
-        purchase.purchaseStatus = PurchaseStatus.PAID;
-        purchase.pinStatus = PinStatus.MASKED;
-        purchase.refundLocked = false;
-        purchase.purchasedAt = LocalDateTime.now();
-        return purchase;
-    }
+    // public static Purchase createPlatformPurchase(User buyer, GifticonSale sale) {
+    //     Purchase purchase = new Purchase();
+    //     purchase.buyer = buyer;
+    //     purchase.sale = sale;
+    //     purchase.purchaseStatus = PurchaseStatus.PAID;
+    //     purchase.pinStatus = PinStatus.MASKED;
+    //     purchase.refundLocked = false;
+    //     purchase.purchasedAt = LocalDateTime.now();
+    //     return purchase;
+    // }
 
     // public static Purchase createPersonalPurchase(User buyer, GifticonSale sale) {
     //     Purchase purchase = new Purchase();

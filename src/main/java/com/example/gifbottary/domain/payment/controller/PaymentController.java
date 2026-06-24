@@ -20,13 +20,5 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PaymentController {
 
-	private final PaymentService paymentService;
 
-	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
-	public CommonResponse<PaymentCreateResponse> createPayment(
-		@Valid @RequestBody PaymentCreateRequest request
-	) {
-		return CommonResponse.success("결제가 생성되었습니다.", paymentService.createPayment(request));
-	}
 }

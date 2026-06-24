@@ -1,25 +1,35 @@
 package com.example.gifbottary.domain.payment.entity;
 
+/**
+ * READY : 결제 생성 완료, PortOne 결제 전
+ * COMPLETED : PortOne 결제 성공
+ * FAILED : PortOne 결제 실패
+ * REFUNDED : 환불 완료
+ */
 public enum PaymentStatus {
-	IN_PROGRESS {
+
+	READY {
 		@Override
 		public boolean canTransitTo(PaymentStatus target) {
-			return target == PAID || target == FAILED;
+			return target == COMPLETED || target == FAILED;
 		}
 	},
-	PAID {
+
+	COMPLETED {
 		@Override
 		public boolean canTransitTo(PaymentStatus target) {
-			return target == CANCELLED;
+			return target == REFUNDED;
 		}
 	},
+
 	FAILED {
 		@Override
 		public boolean canTransitTo(PaymentStatus target) {
 			return false;
 		}
 	},
-	CANCELLED {
+
+	REFUNDED {
 		@Override
 		public boolean canTransitTo(PaymentStatus target) {
 			return false;
@@ -27,8 +37,4 @@ public enum PaymentStatus {
 	};
 
 	public abstract boolean canTransitTo(PaymentStatus target);
-
-
-
-
 }

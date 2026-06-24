@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment extends BaseEntity {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -38,13 +39,12 @@ public class Payment extends BaseEntity {
 	@Column(name = "portone_payment_id", nullable = false, unique = true)
 	private String portOnePaymentId;
 
-	//실제 결제 금액 (Order.totalPrice와 같은 금액)
-	@Column(nullable = false, columnDefinition = "int UNSIGNED")
+	@Column(nullable = false)
 	private int amount;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, length = 30)
-	private PaymentStatus status = PaymentStatus.IN_PROGRESS;
+	@Column(nullable = false)
+	private PaymentStatus status;
 
 	@Column(name = "paid_at")
 	private LocalDateTime paidAt;
@@ -52,18 +52,19 @@ public class Payment extends BaseEntity {
 	@Column(name = "cancelled_at")
 	private LocalDateTime cancelledAt;
 
-	public Payment(Purchase purchase) {
-		this.purchase = purchase;
-		this.amount = purchase.getTotalPrice();
-		this.portOnePaymentId = generatePortOnePaymentId();
-	}
+	public static Payment create(Purchase purchase) {
+		Payment payment = new Payment();
 
-	public static Payment create(Order order) {
-		return new Payment(order);
+		payment.purchase = purchase;
+		payment.amount = purchase.getTotalPrice();
+		payment.portOnePaymentId = generatePortOnePaymentId();
+		payment.status = PaymentStatus.READY;
+
+		return payment;
 	}
 
 	public void complete() {
-		changeStatus(PaymentStatus.PAID);
+		changeStatus(PaymentStatus.COMPLETED);
 		this.paidAt = LocalDateTime.now();
 	}
 
@@ -71,8 +72,8 @@ public class Payment extends BaseEntity {
 		changeStatus(PaymentStatus.FAILED);
 	}
 
-	public void cancel() {
-		changeStatus(PaymentStatus.CANCELLED);
+	public void refund() {
+		changeStatus(PaymentStatus.REFUNDED);
 		this.cancelledAt = LocalDateTime.now();
 	}
 
