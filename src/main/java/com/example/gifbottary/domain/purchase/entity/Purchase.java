@@ -1,7 +1,7 @@
 package com.example.gifbottary.domain.purchase.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
-import com.example.gifbottary.domain.User;
+import com.example.gifbottary.domain.Users;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.purchase.enums.PinStatus;
 import com.example.gifbottary.domain.purchase.enums.PurchaseStatus;
@@ -24,7 +24,7 @@ public class Purchase extends BaseEntity {
 
     @JoinColumn(name = "buyer_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private User buyer;
+    private Users buyer;
 
     @JoinColumn(name = "sale_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -42,7 +42,7 @@ public class Purchase extends BaseEntity {
 
     private LocalDateTime confirmedAt;
 
-    public static Purchase createPlatformPurchase(User buyer, GifticonSale sale) {
+    public static Purchase createPlatformPurchase(Users buyer, GifticonSale sale) {
         Purchase purchase = new Purchase();
         purchase.buyer = buyer;
         purchase.sale = sale;
@@ -53,7 +53,7 @@ public class Purchase extends BaseEntity {
         return purchase;
     }
 
-    public static Purchase createPersonalPurchase(User buyer, GifticonSale sale) {
+    public static Purchase createPersonalPurchase(Users buyer, GifticonSale sale) {
         Purchase purchase = new Purchase();
         purchase.buyer = buyer;
         purchase.sale = sale;
