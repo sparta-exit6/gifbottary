@@ -2,6 +2,8 @@ package com.example.gifbottary.domain.chat.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
 import com.example.gifbottary.domain.chat.enums.ChatRoomStatus;
+import com.example.gifbottary.domain.product.entity.GifticonSale;
+import com.example.gifbottary.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,35 +12,31 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "chat_room")
+@Table(name = "chat_room", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"sale_id", "buyer_id"})
+})
 public class ChatRoom extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "sale_id", nullable = false)
-    private Long saleId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sale_id", nullable = false)
+    private GifticonSale sale;
 
-    @Column(name = "buyer_id", nullable = false)
-    private Long buyerId;
-
-    @Column(name = "seller_id", nullable = false)
-    private Long sellerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "buyer_id", nullable = false)
+    private User buyer;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ChatRoomStatus chatRoomStatus;
 
-    @Column(name = "unread_count", nullable = false)
-    private int unreadCount;
-
-    public ChatRoom(Long saleId, Long buyerId, Long sellerId) {
-        this.saleId = saleId;
-        this.buyerId = buyerId;
-        this.sellerId = sellerId;
+    public ChatRoom(GifticonSale sale, User buyer) {
+        this.sale = sale;
+        this.buyer = buyer;
         this.chatRoomStatus = ChatRoomStatus.OPEN;
-        this.unreadCount = 0;
     }
 
     public void updateStatus(ChatRoomStatus chatRoomStatus) {

@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "chat_member")
+@Table(name = "chat_member", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"chat_room_id", "user_id"})
+})
 public class ChatMember extends BaseEntity {
 
     @Id
@@ -25,6 +27,7 @@ public class ChatMember extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "last_read_message_id")
     private Long lastReadMessageId;
 
     public ChatMember(ChatRoom chatRoom, User user) {
