@@ -9,6 +9,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -33,13 +35,20 @@ public class ChatRoom extends BaseEntity {
     @Column(nullable = false)
     private ChatRoomStatus chatRoomStatus;
 
+    private LocalDateTime lastMessageAt;
+
     public ChatRoom(GifticonSale sale, User buyer) {
         this.sale = sale;
         this.buyer = buyer;
         this.chatRoomStatus = ChatRoomStatus.OPEN;
+        this.lastMessageAt = LocalDateTime.now();
     }
 
     public void updateStatus(ChatRoomStatus chatRoomStatus) {
         this.chatRoomStatus = chatRoomStatus;
+    }
+
+    public void updateLastMessageAt(LocalDateTime lastMessageAt) {
+        this.lastMessageAt = lastMessageAt;
     }
 }

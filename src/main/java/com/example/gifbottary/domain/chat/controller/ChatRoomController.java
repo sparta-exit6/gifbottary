@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.chat.controller;
 import com.example.gifbottary.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
+import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.gifbottary.domain.chat.service.ChatMessageService;
 import com.example.gifbottary.domain.chat.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,20 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/chats")
+@RequestMapping("/api/v1/chatrooms")
 @RequiredArgsConstructor
 public class ChatRoomController {
 
     private final ChatMessageService chatMessageService;
     private final ChatRoomService chatRoomService;
+
+    @GetMapping
+    public ResponseEntity<List<ChatRoomListResponse>> getRooms(
+            @RequestParam("userId") Long userId // 추후 JWT AuthenticationPrincipal로 대체
+    ) {
+        List<ChatRoomListResponse> responses = chatRoomService.getRooms(userId);
+        return ResponseEntity.ok(responses);
+    }
 
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<List<ChatMessageResponse>> getChatMessages(
@@ -29,7 +38,7 @@ public class ChatRoomController {
         return ResponseEntity.ok(messages);
     }
 
-    @PostMapping("/rooms")
+    @PostMapping
     public ResponseEntity<ChatRoomCreateResponse> createRoom(
             @RequestBody ChatRoomCreateRequest request
     ) {
