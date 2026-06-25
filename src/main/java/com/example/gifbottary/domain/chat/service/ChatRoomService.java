@@ -31,7 +31,7 @@ public class ChatRoomService {
     private final UserRepository userRepository;
 
     public List<ChatRoomListResponse> getRooms(Long userId) {
-        return chatMemberRepository.findRoomListByUserId(userId);
+        return chatRoomRepository.findRoomListByUserId(userId);
     }
 
     @Transactional
