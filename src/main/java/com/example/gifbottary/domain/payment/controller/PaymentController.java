@@ -1,13 +1,14 @@
 package com.example.gifbottary.domain.payment.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.gifbottary.common.response.CommonResponse;
+import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.payment.dto.request.PaymentConfirmRequest;
 import com.example.gifbottary.domain.payment.dto.request.PaymentCreateRequest;
 import com.example.gifbottary.domain.payment.dto.response.PaymentConfirmResponse;
@@ -26,16 +27,18 @@ public class PaymentController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public CommonResponse<PaymentCreateResponse> createPayment(
+	public ResponseEntity<ApiResponse<PaymentCreateResponse>> createPayment(
 		@Valid @RequestBody PaymentCreateRequest request
 	) {
-		return CommonResponse.success("결제가 생성되었습니다.", paymentService.createPayment(request));
+		PaymentCreateResponse response = paymentService.createPayment(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
 	}
 
 	@PostMapping("/confirm")
-	public CommonResponse<PaymentConfirmResponse> confirmPayment(
+	public ResponseEntity<ApiResponse<PaymentConfirmResponse>> confirmPayment(
 		@Valid @RequestBody PaymentConfirmRequest request
 	) {
-		return CommonResponse.success("결제가 확정되었습니다.", paymentService.confirmPayment(request));
+		PaymentConfirmResponse response = paymentService.confirmPayment(request);
+		return ResponseEntity.ok(ApiResponse.ok(response));
 	}
 }

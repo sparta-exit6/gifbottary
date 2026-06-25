@@ -1,9 +1,9 @@
 package com.example.gifbottary.domain.payment.service;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.gifbottary.common.exception.ErrorCode;
 import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.domain.payment.dto.request.PaymentConfirmRequest;
 import com.example.gifbottary.domain.payment.dto.request.PaymentCreateRequest;
@@ -40,7 +40,7 @@ public class PaymentService {
 	@Transactional
 	public PaymentCreateResponse createPayment(PaymentCreateRequest request) {
 		GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
-			.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "판매 정보를 찾을 수 없습니다."));
+			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
 
 		User buyer = entityManager.getReference(User.class, request.buyerId());
 
@@ -62,7 +62,7 @@ public class PaymentService {
 	@Transactional
 	public PaymentConfirmResponse confirmPayment(PaymentConfirmRequest request) {
 		Payment payment = paymentRepository.findByPortOnePaymentId(request.portOnePaymentId())
-			.orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
+			.orElseThrow(() -> new ServiceException(ErrorCode.PAYMENT_NOT_FOUND));
 
 		Purchase purchase = payment.getPurchase();
 
