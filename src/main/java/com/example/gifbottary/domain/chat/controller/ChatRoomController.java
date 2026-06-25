@@ -1,7 +1,11 @@
 package com.example.gifbottary.domain.chat.controller;
 
+import com.example.gifbottary.common.response.CommonResponse;
+import com.example.gifbottary.domain.chat.dto.request.ChatRoomCreateRequest;
+import com.example.gifbottary.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.service.ChatMessageService;
+import com.example.gifbottary.domain.chat.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +18,7 @@ import java.util.List;
 public class ChatRoomController {
 
     private final ChatMessageService chatMessageService;
+    private final ChatRoomService chatRoomService;
 
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<List<ChatMessageResponse>> getChatMessages(
@@ -23,5 +28,13 @@ public class ChatRoomController {
     ) {
         List<ChatMessageResponse> messages = chatMessageService.getMessages(roomId, lastMessageId, size);
         return ResponseEntity.ok(messages);
+    }
+
+    @PostMapping("/rooms")
+    public ResponseEntity<ChatRoomCreateResponse> createRoom(
+            @RequestBody ChatRoomCreateRequest request
+    ) {
+        ChatRoomCreateResponse response = chatRoomService.createRoom(request);
+        return ResponseEntity.ok(response);
     }
 }
