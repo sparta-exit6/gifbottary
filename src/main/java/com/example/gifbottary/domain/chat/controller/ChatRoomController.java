@@ -1,11 +1,14 @@
 package com.example.gifbottary.domain.chat.controller;
 
+import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.service.ChatMessageService;
 import com.example.gifbottary.domain.chat.service.ChatRoomService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,10 +33,10 @@ public class ChatRoomController {
     }
 
     @PostMapping("/rooms")
-    public ResponseEntity<ChatRoomCreateResponse> createRoom(
-            @RequestBody ChatRoomCreateRequest request
+    public ResponseEntity<ApiResponse<ChatRoomCreateResponse>> createRoom(
+            @Valid @RequestBody ChatRoomCreateRequest request
     ) {
         ChatRoomCreateResponse response = chatRoomService.createRoom(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
     }
 }
