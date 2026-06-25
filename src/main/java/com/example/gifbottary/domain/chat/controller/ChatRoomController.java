@@ -1,6 +1,5 @@
 package com.example.gifbottary.domain.chat.controller;
 
-import com.example.gifbottary.common.response.CommonResponse;
 import com.example.gifbottary.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
