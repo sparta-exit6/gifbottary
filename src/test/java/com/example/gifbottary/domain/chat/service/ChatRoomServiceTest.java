@@ -93,4 +93,30 @@ class ChatRoomServiceTest {
                 .extracting(m -> m.getUser().getId())
                 .containsExactlyInAnyOrder(buyerId, sellerId);
     }
+
+    @Test
+    @DisplayName("채팅방 생성 - 이미 존재하는 방이면 기존 방 ID를 반환한다")
+    void createRoom_alreadyExists() {
+        // given
+        Long saleId = 1L;
+        Long buyerId = 2L;
+        Long existingRoomId = 100L;
+
+        ChatRoomCreateRequest request = new ChatRoomCreateRequest(saleId, buyerId);
+
+        ChatRoom existingRoom = mock(ChatRoom.class);
+        when(existingRoom.getId()).thenReturn(existingRoomId);
+
+        when(chatRoomRepository.findBySaleIdAndBuyerId(saleId, buyerId)).thenReturn(Optional.of(existingRoom));
+
+        // when
+        ChatRoomCreateResponse response = chatRoomService.createRoom(request);
+
+        // then
+        assertEquals(existingRoomId, response.roomId());
+
+        verify(chatRoomRepository).findBySaleIdAndBuyerId(saleId, buyerId);
+        verify(chatRoomRepository, never()).save(any(ChatRoom.class));
+        verify(chatMemberRepository, never()).saveAll(any());
+    }
 }
