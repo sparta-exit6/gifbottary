@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.auth.service;
 import com.example.gifbottary.domain.auth.dto.request.LoginRequest;
 import com.example.gifbottary.domain.auth.dto.request.SignupRequest;
 import com.example.gifbottary.domain.auth.dto.response.LoginResponse;
+import com.example.gifbottary.domain.auth.dto.response.LogoutResponse;
 import com.example.gifbottary.domain.auth.dto.response.SignupResponse;
 import com.example.gifbottary.domain.auth.jwt.JwtProvider;
 import com.example.gifbottary.domain.user.entity.User;
@@ -52,5 +53,11 @@ public class AuthService {
         String accessToken = jwtProvider.createAccessToken(user);
 
         return LoginResponse.from(accessToken);
+    }
+
+    //SecurityConfig에서 인증된 사용자만 접근 가능하게 했으므로, 서비스에서는 별도 DB 처리 없이 성공 응답만 반환
+    @Transactional(readOnly = true)
+    public LogoutResponse logout() {
+        return LogoutResponse.from();
     }
 }
