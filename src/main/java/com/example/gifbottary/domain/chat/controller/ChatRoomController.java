@@ -24,21 +24,21 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
 
     @GetMapping
-    public ResponseEntity<List<ChatRoomListResponse>> getRooms(
+    public ResponseEntity<ApiResponse<List<ChatRoomListResponse>>> getRooms(
             @RequestParam("userId") Long userId // 추후 JWT AuthenticationPrincipal로 대체
     ) {
         List<ChatRoomListResponse> responses = chatRoomService.getRooms(userId);
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(ApiResponse.ok(responses));
     }
 
     @GetMapping("/{roomId}/messages")
-    public ResponseEntity<List<ChatMessageResponse>> getChatMessages(
+    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getChatMessages(
             @PathVariable Long roomId,
             @RequestParam(value = "lastMessageId", required = false) Long lastMessageId,
             @RequestParam(value = "size", defaultValue = "20") int size
     ) {
         List<ChatMessageResponse> messages = chatMessageService.getMessages(roomId, lastMessageId, size);
-        return ResponseEntity.ok(messages);
+        return ResponseEntity.ok(ApiResponse.ok(messages));
     }
 
     @PostMapping
