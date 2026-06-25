@@ -1,0 +1,3 @@
+jwt:
+  secret-key: GifBottaryTestSecretKey2026AuthJwtExample123456789
+  access-token-expiration: 3600000
