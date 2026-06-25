@@ -1,5 +1,7 @@
 package com.example.gifbottary.domain.chat.service;
 
+import com.example.gifbottary.common.exception.ErrorCode;
+import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
@@ -42,9 +44,9 @@ public class ChatRoomService {
 
         // 2. 데이터 조회
         GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
-                .orElseThrow();
+                .orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
         User buyer = userRepository.findById(request.buyerId())
-                .orElseThrow();
+                .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
 
         // 자신이 올린 판매글에 본인이 채팅방을 파는 것은 금지 (비즈니스 로직)
         if (sale.getSeller().getId().equals(buyer.getId())) {
