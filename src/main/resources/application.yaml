@@ -6,8 +6,3 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
-  #개발용 임시 키
-  jwt:
-    secret-key: ${JWT_SECRET:GifBottaryLocalDevelopmentSecretKey2026AuthJwtExample123456789}
-    access-token-expiration: 3600000
