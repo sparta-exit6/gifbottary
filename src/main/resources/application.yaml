@@ -9,5 +9,5 @@ spring:
 
   #개발용 임시 키
   jwt:
-    secret-key: gifbottary-local-development-secret-key-123456789
+    secret-key: ${JWT_SECRET:GifBottaryLocalDevelopmentSecretKey2026AuthJwtExample123456789}
     access-token-expiration: 3600000
