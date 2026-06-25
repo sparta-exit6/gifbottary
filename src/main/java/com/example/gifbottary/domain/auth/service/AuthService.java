@@ -4,6 +4,7 @@ import com.example.gifbottary.domain.auth.dto.request.LoginRequest;
 import com.example.gifbottary.domain.auth.dto.request.SignupRequest;
 import com.example.gifbottary.domain.auth.dto.response.LoginResponse;
 import com.example.gifbottary.domain.auth.dto.response.SignupResponse;
+import com.example.gifbottary.domain.auth.jwt.JwtProvider;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -47,6 +49,8 @@ public class AuthService {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
-        return LoginResponse.from(user);
+        String accessToken = jwtProvider.createAccessToken(user);
+
+        return LoginResponse.from(accessToken);
     }
 }
