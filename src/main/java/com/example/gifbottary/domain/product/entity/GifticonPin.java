@@ -8,11 +8,16 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 실제 핀 번호 자산을 표현하는 엔티티입니다.
+ * 판매 여부와 검수 여부를 핀 단위로 분리해서 관리합니다.
+ */
 @Entity
 @Getter
 @Table(name = "gifticon_pin")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GifticonPin extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,11 +45,6 @@ public class GifticonPin extends BaseEntity {
 
     public void assignSale(GifticonSale sale) {
         this.sale = sale;
-
-    }
-
-    public void removeSale() {
-        this.sale = null;
     }
 
     public void validatePin() {
