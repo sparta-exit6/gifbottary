@@ -1,6 +1,8 @@
 package com.example.gifbottary.domain.auth.service;
 
+import com.example.gifbottary.domain.auth.dto.request.LoginRequest;
 import com.example.gifbottary.domain.auth.dto.request.SignupRequest;
+import com.example.gifbottary.domain.auth.dto.response.LoginResponse;
 import com.example.gifbottary.domain.auth.dto.response.SignupResponse;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
@@ -34,5 +36,17 @@ public class AuthService {
         } catch (DataIntegrityViolationException e) {
             throw new IllegalArgumentException("이미 가입된 이메일입니다.");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public LoginResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다."));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
+        }
+
+        return LoginResponse.from(user);
     }
 }

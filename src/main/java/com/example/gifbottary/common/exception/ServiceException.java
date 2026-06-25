@@ -1,16 +1,17 @@
 package com.example.gifbottary.common.exception;
 
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
+/**
+ * 비즈니스 예외를 공통 ErrorCode와 함께 전달합니다.
+ */
 @Getter
 public class ServiceException extends RuntimeException {
 
-    private final HttpStatus status;
+    private final ErrorCode errorCode;
 
-    public ServiceException(HttpStatus status, String message) {
-        super(message);
-        this.status = status;
+    public ServiceException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
-
 }
