@@ -51,6 +51,6 @@ public class AuthService {
 
         String accessToken = jwtProvider.createAccessToken(user);
 
-        return LoginResponse.of(user, accessToken);
+        return LoginResponse.from(accessToken);
     }
 }
