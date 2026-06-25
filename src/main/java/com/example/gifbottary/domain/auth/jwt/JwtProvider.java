@@ -2,7 +2,9 @@ package com.example.gifbottary.domain.auth.jwt;
 
 import com.example.gifbottary.domain.user.entity.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -47,7 +49,13 @@ public class JwtProvider {
         try {
             getClaims(token);
             return true;
-        } catch (Exception e) {
+        } catch (ExpiredJwtException e) {
+            return false;
+        } catch (MalformedJwtException e) {
+            return false;
+        } catch (SecurityException e) {
+            return false;
+        } catch (IllegalArgumentException e) {
             return false;
         }
     }
