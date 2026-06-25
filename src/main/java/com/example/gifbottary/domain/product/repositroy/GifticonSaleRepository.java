@@ -1,4 +1,4 @@
-package com.example.gifbottary.domain.product.repositroy;
+package com.example.gifbottary.domain.product.repository;
 
 import com.example.gifbottary.domain.product.entity.GifticonSale;
 import org.springframework.data.jpa.repository.EntityGraph;
