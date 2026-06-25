@@ -1,4 +1,4 @@
-package com.example.gifbottary.domain.product.repositroy;
+package com.example.gifbottary.domain.product.repository;
 
 import com.example.gifbottary.domain.product.entity.GifticonPin;
 import com.example.gifbottary.domain.product.enums.PinSaleStatus;
