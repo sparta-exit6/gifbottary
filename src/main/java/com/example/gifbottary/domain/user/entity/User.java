@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.user.entity;
 import com.example.gifbottary.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,8 +31,14 @@ public class User extends BaseEntity {
 
     private int pointBalance;
 
-    // 테스트를 위한 임시 생성자
-    public User(String email, String password, String name, String role, int pointBalance) {
+    @Builder
+    public User(
+            String email,
+            String password,
+            String name,
+            String role,
+            int pointBalance
+    ) {
         this.email = email;
         this.password = password;
         this.name = name;
