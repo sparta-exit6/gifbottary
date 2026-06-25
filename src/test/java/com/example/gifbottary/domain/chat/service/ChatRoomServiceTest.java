@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,14 +87,11 @@ class ChatRoomServiceTest {
         verify(chatRoomRepository).save(any(ChatRoom.class));
         verify(chatMemberRepository).saveAll(chatMemberListCaptor.capture());
 
-        // 참여자(구매자, 판매자)가 모두 정확하게 포함되어 저장되었는지 상세 검증
+        // 참여자(구매자, 판매자)가 모두 정확하게 포함되어 저장되었는지 상세 검증 (AssertJ 활용)
         List<ChatMember> savedMembers = chatMemberListCaptor.getValue();
-        assertEquals(2, savedMembers.size(), "저장된 참여자는 2명이어야 합니다.");
-        
-        boolean containsBuyer = savedMembers.stream().anyMatch(m -> m.getUser().getId().equals(buyerId));
-        boolean containsSeller = savedMembers.stream().anyMatch(m -> m.getUser().getId().equals(sellerId));
-        
-        assertTrue(containsBuyer, "구매자가 채팅 참여자로 포함되어야 합니다.");
-        assertTrue(containsSeller, "판매자가 채팅 참여자로 포함되어야 합니다.");
+        assertThat(savedMembers)
+                .hasSize(2)
+                .extracting(m -> m.getUser().getId())
+                .containsExactlyInAnyOrder(buyerId, sellerId);
     }
 }
