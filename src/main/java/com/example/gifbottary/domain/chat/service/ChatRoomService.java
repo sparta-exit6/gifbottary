@@ -43,7 +43,7 @@ public class ChatRoomService {
 
         // 자신이 올린 판매글에 본인이 채팅방을 파는 것은 금지 (비즈니스 로직)
         if (sale.getSeller().getId().equals(buyer.getId())) {
-            // 본인 판매글에 채팅방 생성 못하게 예외 발생, 추후 리팩토링
+            //TODO: 본인 판매글에 채팅방 생성 못하게 예외 발생, 추후 리팩토링
         }
 
         // 3. 채팅방 생성 및 저장
