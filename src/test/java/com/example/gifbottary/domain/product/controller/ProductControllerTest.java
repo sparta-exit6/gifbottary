@@ -155,7 +155,7 @@ class ProductControllerTest {
                 LocalDate.of(2026, 12, 31),
                 4000,
                 0,
-                "PENDING_REVIEW",
+                "ON_SALE",
                 "https://example.com/image.png"
         );
 
