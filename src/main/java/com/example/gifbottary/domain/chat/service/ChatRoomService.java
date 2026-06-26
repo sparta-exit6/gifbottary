@@ -27,6 +27,9 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class ChatRoomService {
 
+    public static final String ENTER_MESSAGE_FORMAT = "%s님이 입장했습니다.";
+    public static final String LEAVE_MESSAGE_FORMAT = "%s님이 채팅방을 나갔습니다.";
+
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMemberRepository chatMemberRepository;
     private final GifticonSaleRepository gifticonSaleRepository;
@@ -67,7 +70,7 @@ public class ChatRoomService {
         chatMemberRepository.saveAll(List.of(buyerMember, sellerMember));
 
         // 5. 최초 개설 시스템 메시지 DB 각인 (소켓 연결 시 도배 방지용 정석 위치)
-        String enterMsg = buyer.getName() + "님이 입장했습니다.";
+        String enterMsg = String.format(ENTER_MESSAGE_FORMAT, buyer.getName());
         chatMessageService.saveSystemMessage(savedRoom.getId(), buyer.getId(), enterMsg);
 
         return new ChatRoomCreateResponse(savedRoom.getId());
@@ -80,7 +83,7 @@ public class ChatRoomService {
 
         chatMemberRepository.deleteByChatRoomIdAndUserId(roomId, userId);
 
-        String leaveMsg = user.getName() + "님이 채팅방을 나갔습니다.";
+        String leaveMsg = String.format(LEAVE_MESSAGE_FORMAT, user.getName());
         ChatMessageResponse response = chatMessageService.saveSystemMessage(roomId, userId, leaveMsg);
         messagingTemplate.convertAndSend("/sub/chat/" + roomId, response);
     }
