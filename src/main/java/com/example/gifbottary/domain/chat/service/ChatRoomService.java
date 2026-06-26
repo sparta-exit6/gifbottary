@@ -81,7 +81,10 @@ public class ChatRoomService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
 
-        chatMemberRepository.deleteByChatRoomIdAndUserId(roomId, userId);
+        ChatMember member = chatMemberRepository.findByChatRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.ALREADY_EXITED_CHATROOM));
+
+        chatMemberRepository.delete(member);
 
         String leaveMsg = String.format(LEAVE_MESSAGE_FORMAT, user.getName());
         ChatMessageResponse response = chatMessageService.saveSystemMessage(roomId, userId, leaveMsg);
