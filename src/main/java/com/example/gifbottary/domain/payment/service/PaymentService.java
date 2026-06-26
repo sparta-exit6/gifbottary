@@ -42,6 +42,11 @@ public class PaymentService {
 		GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
 			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
 
+		// 구매 가능 핀 갯수 검증
+		if (sale.countAvailablePins() < request.quantity()) {
+			throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
+		}
+
 		User buyer = entityManager.getReference(User.class, request.buyerId());
 
 		Purchase purchase = Purchase.create(buyer, sale, request.quantity());
@@ -73,9 +78,10 @@ public class PaymentService {
 
 		// 결제 확정시 필요
 		payment.complete();
-		// purchase.completePayment();
+		purchase.completePayment();
 
-		//
+		// 결제 완료시 재고 차감
+		purchase.getSale().sellPins(purchase.getQuantity());
 
 		return PaymentConfirmResponse.from(payment);
 	}

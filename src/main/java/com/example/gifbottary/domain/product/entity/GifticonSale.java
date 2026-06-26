@@ -163,4 +163,27 @@ public class GifticonSale extends BaseEntity {
             throw new IllegalStateException("개인 판매글은 핀을 1개만 가질 수 있습니다.");
         }
     }
+
+    /**
+     * 재고 차감
+     * !! 지금 Purchase에서 어떤 GifticonPin 샀는지 저장하지 않고있음.
+     * @param quantity 판매할 수량
+     */
+    public void sellPins(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("판매 수량은 1개 이상이어야 합니다.");
+        }
+
+        List<GifticonPin> availablePins = this.pins.stream()
+            .filter(GifticonPin::isAvailable)
+            .limit(quantity)
+            .toList();
+
+        if (availablePins.size() < quantity) {
+            throw new IllegalStateException("판매 가능한 핀이 부족합니다.");
+        }
+
+        availablePins.forEach(GifticonPin::markSold);
+        synchronizeStockAndStatus();
+    }
 }
