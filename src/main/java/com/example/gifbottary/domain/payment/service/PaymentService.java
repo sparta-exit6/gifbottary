@@ -17,6 +17,7 @@ import com.example.gifbottary.domain.product.repositroy.GifticonSaleRepository;
 import com.example.gifbottary.domain.purchase.entity.Purchase;
 import com.example.gifbottary.domain.purchase.repository.PurchaseRepository;
 import com.example.gifbottary.domain.user.entity.User;
+import com.example.gifbottary.domain.payment.entity.PaymentStatus;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -64,16 +65,14 @@ public class PaymentService {
 		Payment payment = paymentRepository.findByPortOnePaymentId(request.portOnePaymentId())
 			.orElseThrow(() -> new ServiceException(ErrorCode.PAYMENT_NOT_FOUND));
 
+		if (payment.getStatus() != PaymentStatus.READY) {
+			throw new ServiceException(ErrorCode.CONFLICT);
+		}
+
 		Purchase purchase = payment.getPurchase();
 
 		payment.complete();
-
-		if (purchase.getSale().getSaleType() == SaleType.PERSONAL) {
-			purchase.confirmPersonalPurchase();
-		} else {
-			purchase.completePayment();
-		}
-
+		purchase.completePayment();
 		purchase.getSale().deductStock();
 
 		return PaymentConfirmResponse.from(payment);
