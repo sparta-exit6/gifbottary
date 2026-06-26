@@ -73,36 +73,6 @@ public class Purchase extends BaseEntity {
     }
 
     /**
-     * 결제 완료
-     */
-    public void completePayment() {
-        this.purchaseStatus = PurchaseStatus.PAID;
-        this.purchasedAt = LocalDateTime.now();
-    }
-
-    /**
-     * 플랫폼 상품 구매 확정
-     */
-    public void confirmPurchase() {
-        this.pinStatus = PinStatus.REVEALED;
-        this.refundLocked = true;
-        this.purchaseStatus = PurchaseStatus.CONFIRMED;
-        this.confirmedAt = LocalDateTime.now();
-    }
-
-    /**
-     * 중고 상품 구매확정(즉시)
-     */
-    public void confirmPersonalPurchase() {
-        this.purchaseStatus = PurchaseStatus.CONFIRMED;
-        this.pinStatus = PinStatus.REVEALED;
-        this.refundLocked = true;
-
-        this.purchasedAt = LocalDateTime.now();
-        this.confirmedAt = LocalDateTime.now();
-    }
-
-    /**
      * 환불
      */
     public void cancel() {
@@ -116,41 +86,38 @@ public class Purchase extends BaseEntity {
         return buyer.getId().equals(userId);
     }
 
-    // public static Purchase createPlatformPurchase(User buyer, GifticonSale sale) {
-    //     Purchase purchase = new Purchase();
-    //     purchase.buyer = buyer;
-    //     purchase.sale = sale;
-    //     purchase.purchaseStatus = PurchaseStatus.PAID;
-    //     purchase.pinStatus = PinStatus.MASKED;
-    //     purchase.refundLocked = false;
-    //     purchase.purchasedAt = LocalDateTime.now();
-    //     return purchase;
-    // }
+    /**
+     * 결제 완료
+     */
+    public static Purchase createPlatformPurchase(User buyer, GifticonSale sale) {
+        Purchase purchase = new Purchase();
+        purchase.buyer = buyer;
+        purchase.sale = sale;
+        purchase.purchaseStatus = PurchaseStatus.PAID;
+        purchase.purchasedAt = LocalDateTime.now();
+        return purchase;
+    }
 
-    // public static Purchase createPersonalPurchase(User buyer, GifticonSale sale) {
-    //     Purchase purchase = new Purchase();
-    //     purchase.buyer = buyer;
-    //     purchase.sale = sale;
-    //     purchase.purchaseStatus = PurchaseStatus.CONFIRMED;
-    //     purchase.pinStatus = PinStatus.REVEALED;
-    //     purchase.refundLocked = true;
-    //     purchase.purchasedAt = LocalDateTime.now();
-    //     purchase.confirmedAt = LocalDateTime.now();
-    //     return purchase;
-    // }
-    //
-    // public void revealPin() {
-    //     this.pinStatus = PinStatus.REVEALED;
-    //     this.refundLocked = true;
-    //     this.purchaseStatus = PurchaseStatus.CONFIRMED;
-    //     this.confirmedAt = LocalDateTime.now();
-    // }
-    //
-    // public boolean isConfirmed() {
-    //     return this.purchaseStatus == PurchaseStatus.CONFIRMED;
-    // }
-    //
-    // public boolean isMasked() {
-    //     return this.pinStatus == PinStatus.MASKED;
-    // }
+    /**
+     * 중고 상품 구매확정(즉시)
+     */
+    public static Purchase createPersonalPurchase(User buyer, GifticonSale sale) {
+        Purchase purchase = new Purchase();
+        purchase.buyer = buyer;
+        purchase.sale = sale;
+        purchase.purchaseStatus = PurchaseStatus.CONFIRMED;
+        purchase.pinStatus = PinStatus.REVEALED;
+        purchase.refundLocked = true;
+        purchase.purchasedAt = LocalDateTime.now();
+        purchase.confirmedAt = LocalDateTime.now();
+        return purchase;
+    }
+
+    public boolean isConfirmed() {
+        return this.purchaseStatus == PurchaseStatus.CONFIRMED;
+    }
+    
+    public boolean isMasked() {
+        return this.pinStatus == PinStatus.MASKED;
+    }
 }
