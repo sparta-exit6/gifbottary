@@ -19,6 +19,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +49,28 @@ class ChatRoomServiceTest {
 
     @Captor
     private ArgumentCaptor<List<ChatMember>> chatMemberListCaptor;
+
+    @Test
+    @DisplayName("채팅방 목록 조회 - 유저가 속한 방 목록이 정상적으로 조회된다")
+    void getRooms_success() {
+        // given
+        Long userId = 1L;
+        ChatRoomListResponse room1 = new ChatRoomListResponse(
+                100L, "판매자A", "아메리카노", "안녕하세요", LocalDateTime.now(), 2L);
+
+        when(chatRoomRepository.findRoomListByUserId(userId)).thenReturn(List.of(room1));
+
+        // when
+        List<ChatRoomListResponse> responses = chatRoomService.getRooms(userId);
+
+        // then
+        assertThat(responses).hasSize(1);
+        assertEquals(100L, responses.get(0).roomId());
+        assertEquals("판매자A", responses.get(0).otherUserName());
+        assertEquals("아메리카노", responses.get(0).productName());
+
+        verify(chatRoomRepository).findRoomListByUserId(userId);
+    }
 
     @Test
     @DisplayName("채팅방 생성 성공 - 정상적으로 방과 참여자가 생성되어야 한다")
