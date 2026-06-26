@@ -66,4 +66,12 @@ public class ChatMessageService {
                 .map(ChatMessageResponse::from)
                 .collect(Collectors.toList());
     }
+
+    public List<ChatMessageResponse> getMissedMessages(Long roomId, Long lastMessageId) {
+        List<ChatMessage> messages = chatMessageRepository.findMissedMessages(roomId, lastMessageId);
+
+        return messages.stream()
+                .map(ChatMessageResponse::from)
+                .collect(Collectors.toList());
+    }
 }

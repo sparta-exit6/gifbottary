@@ -41,6 +41,24 @@ public class ChatRoomController {
         return ResponseEntity.ok(ApiResponse.ok(messages));
     }
 
+    @GetMapping("/{roomId}/messages/missed")
+    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getMissedMessages(
+            @PathVariable Long roomId,
+            @RequestParam(value = "lastMessageId", required = false) Long lastMessageId
+    ) {
+        List<ChatMessageResponse> messages = chatMessageService.getMissedMessages(roomId, lastMessageId);
+        return ResponseEntity.ok(ApiResponse.ok(messages));
+    }
+
+    @DeleteMapping("/{roomId}/members")
+    public ResponseEntity<ApiResponse<Void>> leaveRoom(
+            @PathVariable Long roomId,
+            @RequestParam("userId") Long userId
+    ) {
+        chatRoomService.leaveRoom(roomId, userId);
+        return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<ChatRoomCreateResponse>> createRoom(
             @Valid @RequestBody ChatRoomCreateRequest request

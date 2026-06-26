@@ -32,7 +32,7 @@ public class ChatMessage extends BaseEntity {
     private String content;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "message_type", nullable = false)
+    @Column(nullable = false)
     private MessageType messageType;
 
     public ChatMessage(ChatRoom chatRoom, User sender, String content) {

@@ -18,6 +18,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
 import java.time.LocalDateTime;
@@ -46,6 +47,12 @@ class ChatRoomServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ChatMessageService chatMessageService;
+
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     @Captor
     private ArgumentCaptor<List<ChatMember>> chatMemberListCaptor;

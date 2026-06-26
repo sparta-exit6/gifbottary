@@ -4,8 +4,6 @@ import com.example.gifbottary.common.exception.ErrorCode;
 import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.domain.auth.jwt.JwtProvider;
 import com.example.gifbottary.domain.chat.dto.StompPrincipal;
-import com.example.gifbottary.domain.user.entity.User;
-import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -22,8 +20,6 @@ import org.springframework.stereotype.Component;
 public class StompJwtAuthInterceptor implements ChannelInterceptor {
 
     private final JwtProvider jwtProvider;
-    // 추후 리팩토링 시 JWT Token에 userName 넣으면 없앨 수 있어 좋을듯합니다.
-    private final UserRepository userRepository;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -45,12 +41,11 @@ public class StompJwtAuthInterceptor implements ChannelInterceptor {
             }
 
             Long userId = jwtProvider.getUserId(token);
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
+            String userName = jwtProvider.getUserName(token);
 
-            StompPrincipal principal = new StompPrincipal(userId, user.getName());
+            StompPrincipal principal = new StompPrincipal(userId, userName != null ? userName : "알 수 없음");
             accessor.setUser(principal);
-            log.info("STOMP CONNECT 인증 성공 - User ID: {}, Name: {}", userId, user.getName());
+            log.info("STOMP CONNECT 인증 성공 (Stateless JWT Claim 추출) - User ID: {}, Name: {}", userId, principal.userName());
         }
 
         return message;

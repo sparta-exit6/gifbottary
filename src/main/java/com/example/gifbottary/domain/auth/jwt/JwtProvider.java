@@ -35,6 +35,7 @@ public class JwtProvider {
                 .subject(String.valueOf(user.getId()))
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole())
+                .claim("name", user.getName())
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(secretKey)
@@ -43,6 +44,10 @@ public class JwtProvider {
 
     public Long getUserId(String token) {
         return Long.parseLong(getClaims(token).getSubject());
+    }
+
+    public String getUserName(String token) {
+        return getClaims(token).get("name", String.class);
     }
 
     public boolean validateToken(String token) {

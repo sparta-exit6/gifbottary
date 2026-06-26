@@ -1,12 +1,9 @@
 package com.example.gifbottary.domain.chat.event;
 
 import com.example.gifbottary.domain.chat.dto.StompPrincipal;
-import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
-import com.example.gifbottary.domain.chat.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
@@ -21,9 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @RequiredArgsConstructor
 public class WebSocketEventListener {
-
-    private final ChatMessageService chatMessageService;
-    private final SimpMessagingTemplate messagingTemplate;
 
     private record SessionRoomInfo(Long roomId, StompPrincipal principal) {}
     private final Map<String, SessionRoomInfo> sessionRoomMap = new ConcurrentHashMap<>();
@@ -46,11 +40,7 @@ public class WebSocketEventListener {
                 String sessionId = accessor.getSessionId();
 
                 sessionRoomMap.put(sessionId, new SessionRoomInfo(roomId, stompPrincipal));
-
-                String enterMsg = stompPrincipal.userName() + "님이 입장했습니다.";
-                ChatMessageResponse response = chatMessageService.saveSystemMessage(roomId, stompPrincipal.userId(), enterMsg);
-                messagingTemplate.convertAndSend(destination, response);
-                log.info("채팅방 입장 시스템 메시지 발송 - Room: {}, User: {}", roomId, stompPrincipal.userName());
+                log.info("채팅방 소켓 구독 완료 (알림성 입장 메시지 미발송) - Room: {}, User: {}", roomId, stompPrincipal.userName());
             } catch (NumberFormatException e) {
                 log.warn("구독 경로에서 roomId 파싱 실패: {}", destination);
             }
@@ -64,10 +54,7 @@ public class WebSocketEventListener {
 
         SessionRoomInfo info = sessionRoomMap.remove(sessionId);
         if (info != null) {
-            String leaveMsg = info.principal().userName() + "님이 퇴장했습니다.";
-            ChatMessageResponse response = chatMessageService.saveSystemMessage(info.roomId(), info.principal().userId(), leaveMsg);
-            messagingTemplate.convertAndSend("/sub/chat/" + info.roomId(), response);
-            log.info("채팅방 퇴장 시스템 메시지 발송 - Room: {}, User: {}", info.roomId(), info.principal().userName());
+            log.info("일시적 소켓 단절 감지 (세션 맵 정리 완료, 퇴장 알림 미발송) - Room: {}, User: {}", info.roomId(), info.principal().userName());
         } else {
             log.info("Web socket connection disconnected without room subscription. Session ID: {}", sessionId);
         }
