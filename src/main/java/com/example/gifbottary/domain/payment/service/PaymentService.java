@@ -11,7 +11,6 @@ import com.example.gifbottary.domain.payment.dto.response.PaymentConfirmResponse
 import com.example.gifbottary.domain.payment.dto.response.PaymentCreateResponse;
 import com.example.gifbottary.domain.payment.entity.Payment;
 import com.example.gifbottary.domain.payment.repository.PaymentRepository;
-import com.example.gifbottary.domain.product.enums.SaleType;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import com.example.gifbottary.domain.purchase.entity.Purchase;
