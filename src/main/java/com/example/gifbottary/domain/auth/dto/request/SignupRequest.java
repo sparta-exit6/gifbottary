@@ -1,6 +1,6 @@
 package com.example.gifbottary.domain.auth.dto.request;
 
-
+import com.example.gifbottary.domain.user.entity.Role;
 import com.example.gifbottary.domain.user.entity.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,23 +11,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Getter
 public class SignupRequest {
 
-    @Email(message = "이메일 형식이 올바르지 않습니다.")
-    @NotBlank(message = "이메일은 필수입니다.")
+    @Email
+    @NotBlank
     private String email;
 
-    @NotBlank(message = "비밀번호는 필수입니다.")
-    @Size(min = 8, message = "비밀번호는 8자 이상이어야 합니다.")
+    @NotBlank
+    @Size(min = 8)
     private String password;
 
-    @NotBlank(message = "이름은 필수입니다.")
+    @NotBlank
     private String name;
 
     public User toEntity(PasswordEncoder passwordEncoder) {
+
         return User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .name(name)
-                .role("USER")
+                .role(Role.USER)          // 항상 USER(관리자는 회원가입 x)
                 .pointBalance(0)
                 .build();
     }
