@@ -1,5 +1,6 @@
 package com.example.gifbottary.domain.auth.controller;
 
+import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.auth.dto.request.LoginRequest;
 import com.example.gifbottary.domain.auth.dto.request.SignupRequest;
 import com.example.gifbottary.domain.auth.dto.response.LoginResponse;
@@ -32,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public LogoutResponse logout() {
-        return authService.logout();
+    public ApiResponse<LogoutResponse> logout() {
+        return ApiResponse.ok(authService.logout());
     }
 }

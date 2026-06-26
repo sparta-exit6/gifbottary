@@ -55,9 +55,11 @@ public class AuthService {
         return LoginResponse.from(accessToken);
     }
 
-    //SecurityConfig에서 인증된 사용자만 접근 가능하게 했으므로, 서비스에서는 별도 DB 처리 없이 성공 응답만 반환
     @Transactional(readOnly = true)
     public LogoutResponse logout() {
+        // 현재 로그아웃은 클라이언트에서 Access Token을 삭제하는 방식으로 처리한다.
+        // 서버에서는 인증된 사용자만 접근 가능한 엔드포인트를 제공하고,
+        // 별도의 토큰 무효화 처리는 수행하지 않는다.
         return LogoutResponse.from();
     }
 }
