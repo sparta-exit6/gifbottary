@@ -30,8 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * 상품/판매글 CRUD와 판매자 상품 조회를 담당하는 서비스 클래스입니다.
- * 현재 팀 구조에서는 구현체가 하나뿐이므로 인터페이스 없이 단일 클래스로 관리합니다.
+ * 상품/판매글 CRUD와 공개 목록 조회, 판매자 목록 조회를 담당하는 서비스입니다.
  */
 @Service
 @RequiredArgsConstructor
@@ -43,10 +42,6 @@ public class ProductService {
     private final UserRepository userRepository;
     private final PinEncryptor pinEncryptor;
 
-    /**
-     * 판매글을 등록합니다.
-     * 기존 상품 선택과 상품 정보 직접 입력 두 방식을 모두 지원합니다.
-     */
     @Transactional
     public ProductCreateResponse createProduct(Long sellerId, ProductCreateRequest request) {
         User seller = findUser(sellerId);
@@ -66,19 +61,12 @@ public class ProductService {
         return toDetailResponse(findSale(saleId));
     }
 
-    /**
-     * 공개 판매글 목록을 조회합니다.
-     * 인증 없이도 조회 가능하며, 공개 가능한 판매글만 반환합니다.
-     */
     @Transactional(readOnly = true)
     public Page<ProductSummaryResponse> findProducts(ProductSearchRequest request, Pageable pageable) {
         return gifticonSaleRepository.findAll(GifticonSaleSpecification.publicSearch(request), pageable)
                 .map(ProductSummaryResponse::from);
     }
 
-    /**
-     * 판매 가격, 유효기간, 이미지, 핀 목록을 수정합니다.
-     */
     @Transactional
     public ProductDetailResponse updateProduct(Long sellerId, Long saleId, ProductUpdateRequest request) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
@@ -106,9 +94,6 @@ public class ProductService {
         return ProductPinValidationResponse.from(sale, pins);
     }
 
-    /**
-     * 판매글 상태를 수동으로 변경합니다.
-     */
     @Transactional
     public ProductDetailResponse updateSaleStatus(Long sellerId, Long saleId, ProductStatusUpdateRequest request) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
@@ -122,17 +107,15 @@ public class ProductService {
         return toDetailResponse(sale);
     }
 
-    /**
-     * 목데이터 기반 핀 검수 결과를 반영합니다.
-     */
     @Transactional
     public ProductDetailResponse updatePinValidationStatus(Long sellerId, Long saleId, Long pinId, PinValidationUpdateRequest request) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
         if (sale.getSaleStatus() == SaleStatus.CANCELLED) {
             throw new ServiceException(ErrorCode.INVALID_SALE_STATUS);
         }
-        GifticonPin pin = gifticonPinRepository.findByIdAndSale_Id(pinId, saleId).orElseThrow(
-                () -> new ServiceException(ErrorCode.PIN_NOT_FOUND));
+
+        GifticonPin pin = gifticonPinRepository.findByIdAndSale_Id(pinId, saleId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.PIN_NOT_FOUND));
 
         if (request.pinValidationStatus() == PinValidationStatus.VALID) {
             pin.validatePin();
@@ -146,9 +129,6 @@ public class ProductService {
         return toDetailResponse(sale);
     }
 
-    /**
-     * 이미 판매된 핀이 없다면 판매글을 취소 상태로 전환합니다.
-     */
     @Transactional
     public void removeProduct(Long sellerId, Long saleId) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
@@ -174,24 +154,19 @@ public class ProductService {
         if (request.salePrice() == null || request.salePrice() < 0) {
             throw new ServiceException(ErrorCode.INVALID_PRICE);
         }
-        // 플랫폼 상품 등록은 관리자만 가능합니다.
         if (request.saleType() == SaleType.PLATFORM && !isAdmin(seller)) {
             throw new ServiceException(ErrorCode.PLATFORM_SALE_ADMIN_ONLY);
         }
-        // 개인 판매자는 상품 ID를 직접 선택하지 않고 상품 정보를 직접 입력합니다.
         if (request.saleType() == SaleType.PERSONAL && request.productId() != null) {
             throw new ServiceException(ErrorCode.INVALID_INPUT_VALUE);
         }
         if (request.productId() == null) {
             if (isBlank(request.brand()) || isBlank(request.productName()) || request.faceValue() == null) {
-                throw new ServiceException(ErrorCode.INVALID_INPUT_VALUE);
+                throw new ServiceException(ErrorCode.PRODUCT_NOT_FOUND);
             }
         }
     }
 
-    /**
-     * 판매 등록 시 기존 상품을 선택하거나 상품 정보를 직접 입력하는 두 가지 방식을 지원합니다.
-     */
     private GifticonProduct resolveProduct(ProductCreateRequest request) {
         if (request.productId() != null) {
             return gifticonProductRepository.findById(request.productId())
@@ -210,25 +185,25 @@ public class ProductService {
     }
 
     /**
-     * 핀 번호는 정규화 후 암호화하여 개별 핀 엔티티로 추가합니다.
+     * 핀번호는 복호화 가능한 암호문으로 저장하고,
+     * 중복 여부는 별도의 해시값으로 검사합니다.
      */
     private void appendPins(GifticonSale sale, List<String> rawPins, SaleType saleType) {
         List<String> normalizedPins = normalizePinNumbers(rawPins);
         validatePinCountBySaleType(sale, normalizedPins, saleType);
 
         for (String rawPin : normalizedPins) {
-            String encryptedPin = pinEncryptor.encrypt(rawPin);
-            if (gifticonPinRepository.existsByEncryptedPin(encryptedPin)) {
+            String pinHash = pinEncryptor.hash(rawPin);
+            if (gifticonPinRepository.existsByPinHash(pinHash)) {
                 throw new ServiceException(ErrorCode.PIN_VALIDATION_FAILED, "이미 사용된 핀번호입니다.");
             }
-            GifticonPin gifticonPin = new GifticonPin(encryptedPin);
+
+            String encryptedPin = pinEncryptor.encrypt(rawPin);
+            GifticonPin gifticonPin = new GifticonPin(encryptedPin, pinHash);
             sale.addPin(gifticonPin);
         }
     }
 
-    /**
-     * 개인 판매는 항상 1핀만 허용하고, 플랫폼 판매만 다건 핀을 허용합니다.
-     */
     private void validatePinCountBySaleType(GifticonSale sale, List<String> normalizedPins, SaleType saleType) {
         if (normalizedPins.isEmpty()) {
             throw new ServiceException(ErrorCode.INVALID_PIN_COUNT);
@@ -295,7 +270,7 @@ public class ProductService {
     }
 
     private User findUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(
-                () -> new ServiceException(ErrorCode.USER_NOT_FOUND));
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
     }
 }

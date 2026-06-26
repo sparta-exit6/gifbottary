@@ -1,14 +1,14 @@
 package com.example.gifbottary.domain.product.dto.response;
 
 import com.example.gifbottary.domain.product.entity.GifticonSale;
-import com.example.gifbottary.domain.product.enums.PinValidationStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 판매 등록 응답 DTO입니다.
- * 등록 직후에는 pinCheckStatus=PENDING, saleStatus=PENDING_REVIEW 상태를 반환합니다.
+ * 판매글 생성 직후 반환하는 응답입니다.
+ * 핀 검수 상태는 여러 핀이 섞일 수 있으므로 생성 응답에 포함하지 않고,
+ * 상세 조회나 핀 검수 조회 API에서 확인합니다.
  */
 public record ProductCreateResponse(
         Long saleId,
@@ -21,16 +21,10 @@ public record ProductCreateResponse(
         Integer salePrice,
         Integer stock,
         String saleStatus,
-        String pinCheckStatus,
         String imageUrl,
         LocalDateTime createdAt
 ) {
     public static ProductCreateResponse from(GifticonSale sale) {
-        String pinCheckStatus = sale.getPins().stream()
-                .map(pin -> pin.getPinValidationStatus().name())
-                .findFirst()
-                .orElse(PinValidationStatus.PENDING.name());
-
         return new ProductCreateResponse(
                 sale.getId(),
                 sale.getProduct().getId(),
@@ -42,7 +36,6 @@ public record ProductCreateResponse(
                 sale.getSalePrice(),
                 sale.getStock(),
                 sale.getSaleStatus().name(),
-                pinCheckStatus,
                 sale.getProduct().getImageUrl(),
                 sale.getCreatedAt()
         );

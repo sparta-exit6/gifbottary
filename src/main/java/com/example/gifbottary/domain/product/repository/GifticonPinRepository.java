@@ -18,7 +18,7 @@ public interface GifticonPinRepository extends JpaRepository<GifticonPin, Long> 
 
     boolean existsBySale_IdAndPinSaleStatus(Long saleId, PinSaleStatus pinSaleStatus);
 
-    boolean existsByEncryptedPin(String encryptedPin);
+    boolean existsByPinHash(String pinHash);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<GifticonPin> findFirstBySale_IdAndPinValidationStatusAndPinSaleStatusOrderByIdAsc(
