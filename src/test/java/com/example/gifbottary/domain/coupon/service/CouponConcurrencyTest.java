@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.coupon.service;
 import com.example.gifbottary.domain.coupon.entity.Coupon;
 import com.example.gifbottary.domain.coupon.repository.CouponRepository;
 import com.example.gifbottary.domain.coupon.repository.UserCouponRepository;
+import com.example.gifbottary.domain.user.entity.Role;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +54,7 @@ class CouponConcurrencyTest {
                     .email("concurrent_user_" + i + "@test.com")
                     .password("password")
                     .name("유저" + i)
-                    .role("ROLE_USER")
+                    .role(Role.USER)
                     .pointBalance(0)
                     .build());
         }
