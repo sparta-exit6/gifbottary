@@ -9,9 +9,17 @@ import lombok.Getter;
 public class ServiceException extends RuntimeException {
 
     private final ErrorCode errorCode;
+    private final String customMessage;
 
     public ServiceException(ErrorCode errorCode) {
         super(errorCode.getMessage());
         this.errorCode = errorCode;
+        this.customMessage = null;
+    }
+
+    public ServiceException(ErrorCode errorCode, String customMessage) {
+        super(customMessage);
+        this.errorCode = errorCode;
+        this.customMessage = customMessage;
     }
 }
