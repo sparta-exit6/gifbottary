@@ -8,6 +8,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
+
 @Controller
 @RequiredArgsConstructor
 public class ChatMessageController {
@@ -16,10 +18,12 @@ public class ChatMessageController {
     private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/chat/message")
-    public void sendMessage(ChatMessageSendRequest request) {
+    public void sendMessage(Principal principal, ChatMessageSendRequest request) {
+        Long senderId = Long.parseLong(principal.getName());
+
         // 1. 메시지 DB 저장
-        ChatMessageResponse response = chatMessageService.saveMessage(request);
-        
+        ChatMessageResponse response = chatMessageService.saveMessage(senderId, request);
+
         // 2. 해당 채팅방 구독자들에게 메시지 브로드캐스트
         messagingTemplate.convertAndSend("/sub/chat/" + request.roomId(), response);
     }

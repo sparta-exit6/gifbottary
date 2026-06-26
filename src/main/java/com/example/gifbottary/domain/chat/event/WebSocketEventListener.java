@@ -1,17 +1,32 @@
 package com.example.gifbottary.domain.chat.event;
 
+import com.example.gifbottary.domain.chat.dto.StompPrincipal;
+import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
+import com.example.gifbottary.domain.chat.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
+
+import java.security.Principal;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class WebSocketEventListener {
+
+    private final ChatMessageService chatMessageService;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    private record SessionRoomInfo(Long roomId, StompPrincipal principal) {}
+    private final Map<String, SessionRoomInfo> sessionRoomMap = new ConcurrentHashMap<>();
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
@@ -20,10 +35,41 @@ public class WebSocketEventListener {
     }
 
     @EventListener
+    public void handleSessionSubscribeEvent(SessionSubscribeEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String destination = accessor.getDestination();
+        Principal principal = accessor.getUser();
+
+        if (destination != null && destination.startsWith("/sub/chat/") && principal instanceof StompPrincipal stompPrincipal) {
+            try {
+                Long roomId = Long.parseLong(destination.substring("/sub/chat/".length()));
+                String sessionId = accessor.getSessionId();
+
+                sessionRoomMap.put(sessionId, new SessionRoomInfo(roomId, stompPrincipal));
+
+                String enterMsg = stompPrincipal.userName() + "님이 입장했습니다.";
+                ChatMessageResponse response = chatMessageService.saveSystemMessage(roomId, stompPrincipal.userId(), enterMsg);
+                messagingTemplate.convertAndSend(destination, response);
+                log.info("채팅방 입장 시스템 메시지 발송 - Room: {}, User: {}", roomId, stompPrincipal.userName());
+            } catch (NumberFormatException e) {
+                log.warn("구독 경로에서 roomId 파싱 실패: {}", destination);
+            }
+        }
+    }
+
+    @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        log.info("Web socket connection disconnected. Session ID: {}", headerAccessor.getSessionId());
-        
-        // TODO: 추후 JWT 구현 후 수정 예정 !! 유저 세션 맵핑을 통해 퇴장 시스템 메시지 발송이나 lastReadMessageId 업데이트 등을 처리할 수 있습니다.
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String sessionId = accessor.getSessionId();
+
+        SessionRoomInfo info = sessionRoomMap.remove(sessionId);
+        if (info != null) {
+            String leaveMsg = info.principal().userName() + "님이 퇴장했습니다.";
+            ChatMessageResponse response = chatMessageService.saveSystemMessage(info.roomId(), info.principal().userId(), leaveMsg);
+            messagingTemplate.convertAndSend("/sub/chat/" + info.roomId(), response);
+            log.info("채팅방 퇴장 시스템 메시지 발송 - Room: {}, User: {}", info.roomId(), info.principal().userName());
+        } else {
+            log.info("Web socket connection disconnected without room subscription. Session ID: {}", sessionId);
+        }
     }
 }

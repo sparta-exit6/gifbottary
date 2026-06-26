@@ -1,6 +1,7 @@
 package com.example.gifbottary.domain.chat.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
+import com.example.gifbottary.domain.chat.enums.MessageType;
 import com.example.gifbottary.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -30,9 +31,18 @@ public class ChatMessage extends BaseEntity {
     @Column(nullable = false)
     private String content;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "message_type", nullable = false)
+    private MessageType messageType;
+
     public ChatMessage(ChatRoom chatRoom, User sender, String content) {
+        this(chatRoom, sender, content, MessageType.TALK);
+    }
+
+    public ChatMessage(ChatRoom chatRoom, User sender, String content, MessageType messageType) {
         this.chatRoom = chatRoom;
         this.sender = sender;
         this.content = content;
+        this.messageType = messageType;
     }
 }
