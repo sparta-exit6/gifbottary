@@ -5,6 +5,7 @@ import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.product.dto.request.ProductSearchRequest;
 import com.example.gifbottary.domain.product.dto.response.ProductSummaryResponse;
+import com.example.gifbottary.domain.product.enums.SaleType;
 import com.example.gifbottary.domain.product.service.ProductService;
 import com.example.gifbottary.domain.search.dto.response.PopularKeywordResponse;
 import com.example.gifbottary.domain.search.dto.response.RecentKeywordResponse;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +27,6 @@ import java.util.List;
 @RequestMapping("/api/v1/search")
 public class SearchController {
 
-    private static final String USER_ID_HEADER = "X-USER-ID";
-
     private final SearchService searchService;
     private final ProductService productService;
 
@@ -37,10 +37,15 @@ public class SearchController {
 
     @GetMapping("/products")
     public ResponseEntity<ApiResponse<Page<ProductSummaryResponse>>> searchProducts(
-            @RequestHeader(value = USER_ID_HEADER, required = false) Long userId,
-            @ModelAttribute ProductSearchRequest request,
+            @AuthenticationPrincipal(expression = "id") Long userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) SaleType saleType,
+            @RequestParam(required = false) Integer minPrice,
+            @RequestParam(required = false) Integer maxPrice,
             @PageableDefault(size = 10) Pageable pageable
     ) {
+        ProductSearchRequest request = new ProductSearchRequest(keyword, brand, saleType, null, minPrice, maxPrice);
         searchService.saveSearchKeyword(userId, request);
         return ResponseEntity.ok(ApiResponse.ok(productService.findProducts(request, pageable)));
     }
@@ -49,19 +54,19 @@ public class SearchController {
     public ResponseEntity<ApiResponse<List<PopularKeywordResponse>>> findPopularKeywords(
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(searchService.findPopularKeywords(limit)));
+        return ResponseEntity.ok(ApiResponse.ok(searchService.findPopularKeywordsV1(limit)));
     }
 
     @GetMapping("/recent-keywords")
     public ResponseEntity<ApiResponse<List<RecentKeywordResponse>>> findRecentKeywords(
-            @RequestHeader(value = USER_ID_HEADER, required = false) Long userId
+            @AuthenticationPrincipal(expression = "id") Long userId
     ) {
         return ResponseEntity.ok(ApiResponse.ok(searchService.findRecentKeywords(requireUserId(userId))));
     }
 
     @DeleteMapping("/recent-keywords/{keyword}")
     public ResponseEntity<ApiResponse<Void>> removeRecentKeyword(
-            @RequestHeader(value = USER_ID_HEADER, required = false) Long userId,
+            @AuthenticationPrincipal(expression = "id") Long userId,
             @PathVariable String keyword
     ) {
         searchService.removeRecentKeyword(requireUserId(userId), keyword);
@@ -70,7 +75,7 @@ public class SearchController {
 
     @DeleteMapping("/recent-keywords")
     public ResponseEntity<ApiResponse<Void>> removeAllRecentKeywords(
-            @RequestHeader(value = USER_ID_HEADER, required = false) Long userId
+            @AuthenticationPrincipal(expression = "id") Long userId
     ) {
         searchService.removeAllRecentKeywords(requireUserId(userId));
         return ResponseEntity.ok(ApiResponse.ok());

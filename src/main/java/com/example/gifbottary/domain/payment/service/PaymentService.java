@@ -1,5 +1,7 @@
 package com.example.gifbottary.domain.payment.service;
 
+import com.example.gifbottary.domain.product.entity.GifticonSale;
+import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,7 +74,7 @@ public class PaymentService {
 
 		payment.complete();
 		//purchase.completePayment();
-		purchase.getSale().deductStock();
+		//purchase.getSale().deductStock();
 
 		return PaymentConfirmResponse.from(payment);
 	}

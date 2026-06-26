@@ -74,8 +74,15 @@ class ProductServiceTest {
         });
 
         ProductCreateRequest request = new ProductCreateRequest(
-                null, SaleType.PERSONAL, "스타벅스", "아메리카노 T", 4500,
-                LocalDate.now().plusDays(10), 4000, "1111-2222-3333", null,
+                null,
+                SaleType.PERSONAL,
+                "스타벅스",
+                "아메리카노 T",
+                4500,
+                LocalDate.now().plusDays(10),
+                4000,
+                "1111-2222-3333",
+                null,
                 "https://example.com/image.png"
         );
 
@@ -90,7 +97,7 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("플랫폼 판매에서 기존 상품 ID를 선택하면 기존 상품을 재사용한다")
+    @DisplayName("플랫폼 판매에서 기존 상품 ID를 선택하면 기존 상품을 사용한다")
     void createProduct_withSelectedProductInPlatformSale_usesExistingProduct() {
         User seller = createUser(1L, Role.ADMIN);
         GifticonProduct existingProduct = new GifticonProduct("스타벅스", "아메리카노 T", 4500, "https://example.com/image.png");
@@ -107,8 +114,16 @@ class ProductServiceTest {
         });
 
         ProductCreateRequest request = new ProductCreateRequest(
-                101L, SaleType.PLATFORM, null, null, null,
-                LocalDate.now().plusDays(10), 4000, "1111-2222-3333", null, null
+                101L,
+                SaleType.PLATFORM,
+                null,
+                null,
+                null,
+                LocalDate.now().plusDays(10),
+                4000,
+                "1111-2222-3333",
+                null,
+                null
         );
 
         ProductCreateResponse response = productService.createProduct(1L, request);
@@ -125,8 +140,16 @@ class ProductServiceTest {
         given(userRepository.findById(1L)).willReturn(Optional.of(seller));
 
         ProductCreateRequest request = new ProductCreateRequest(
-                101L, SaleType.PLATFORM, null, null, null,
-                LocalDate.now().plusDays(10), 4000, "1111-2222-3333", null, null
+                101L,
+                SaleType.PLATFORM,
+                null,
+                null,
+                null,
+                LocalDate.now().plusDays(10),
+                4000,
+                "1111-2222-3333",
+                null,
+                null
         );
 
         assertThatThrownBy(() -> productService.createProduct(1L, request))
@@ -134,11 +157,22 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("개인 판매에서 상품 ID를 넘기면 실패한다")
+    @DisplayName("개인 판매에서 상품 ID를 보내면 실패한다")
     void createProduct_withProductIdInPersonalSale_throwsException() {
+        User seller = createUser(1L, Role.USER);
+        given(userRepository.findById(1L)).willReturn(Optional.of(seller));
+
         ProductCreateRequest request = new ProductCreateRequest(
-                101L, SaleType.PERSONAL, null, null, null,
-                LocalDate.now().plusDays(10), 4000, "1111-2222-3333", null, null
+                101L,
+                SaleType.PERSONAL,
+                null,
+                null,
+                null,
+                LocalDate.now().plusDays(10),
+                4000,
+                "1111-2222-3333",
+                null,
+                null
         );
 
         assertThatThrownBy(() -> productService.createProduct(1L, request))
@@ -146,11 +180,22 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("유효기간이 과거면 판매 등록이 실패한다")
+    @DisplayName("유효기간이 과거면 판매 등록에 실패한다")
     void createProduct_withPastExpireAt_throwsException() {
+        User seller = createUser(1L, Role.USER);
+        given(userRepository.findById(1L)).willReturn(Optional.of(seller));
+
         ProductCreateRequest request = new ProductCreateRequest(
-                null, SaleType.PERSONAL, "스타벅스", "아메리카노 T", 4500,
-                LocalDate.now().minusDays(1), 4000, "1111-2222-3333", null, null
+                null,
+                SaleType.PERSONAL,
+                "스타벅스",
+                "아메리카노 T",
+                4500,
+                LocalDate.now().minusDays(1),
+                4000,
+                "1111-2222-3333",
+                null,
+                null
         );
 
         assertThatThrownBy(() -> productService.createProduct(1L, request))
@@ -158,7 +203,7 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("개인 판매에 핀번호를 2개 이상 등록하면 실패한다")
+    @DisplayName("개인 판매에 핀 번호를 여러 개 등록하면 실패한다")
     void createProduct_withMultiplePinsInPersonalSale_throwsException() {
         User seller = createUser(1L, Role.USER);
         given(userRepository.findById(1L)).willReturn(Optional.of(seller));
@@ -166,9 +211,16 @@ class ProductServiceTest {
         given(gifticonProductRepository.save(any(GifticonProduct.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         ProductCreateRequest request = new ProductCreateRequest(
-                null, SaleType.PERSONAL, "스타벅스", "아메리카노 T", 4500,
-                LocalDate.now().plusDays(10), 4000, null,
-                List.of("1111-2222-3333", "4444-5555-6666"), null
+                null,
+                SaleType.PERSONAL,
+                "스타벅스",
+                "아메리카노 T",
+                4500,
+                LocalDate.now().plusDays(10),
+                4000,
+                null,
+                List.of("1111-2222-3333", "4444-5555-6666"),
+                null
         );
 
         assertThatThrownBy(() -> productService.createProduct(1L, request))
@@ -176,7 +228,7 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("요청에 중복 핀번호가 있으면 등록이 실패한다")
+    @DisplayName("요청 안에 중복된 핀 번호가 있으면 실패한다")
     void createProduct_withDuplicatePinsInRequest_throwsException() {
         User seller = createUser(1L, Role.USER);
         given(userRepository.findById(1L)).willReturn(Optional.of(seller));
@@ -184,9 +236,16 @@ class ProductServiceTest {
         given(gifticonProductRepository.save(any(GifticonProduct.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         ProductCreateRequest request = new ProductCreateRequest(
-                null, SaleType.PERSONAL, "스타벅스", "아메리카노 T", 4500,
-                LocalDate.now().plusDays(10), 4000, null,
-                List.of("1111-2222-3333", "1111-2222-3333"), null
+                null,
+                SaleType.PERSONAL,
+                "스타벅스",
+                "아메리카노 T",
+                4500,
+                LocalDate.now().plusDays(10),
+                4000,
+                null,
+                List.of("1111-2222-3333", "1111-2222-3333"),
+                null
         );
 
         assertThatThrownBy(() -> productService.createProduct(1L, request))
@@ -195,7 +254,7 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("이미 사용된 핀번호면 등록이 실패한다")
+    @DisplayName("이미 사용된 핀 번호면 실패한다")
     void createProduct_withAlreadyUsedPin_throwsException() {
         User seller = createUser(1L, Role.USER);
         given(userRepository.findById(1L)).willReturn(Optional.of(seller));
@@ -205,8 +264,16 @@ class ProductServiceTest {
         given(gifticonPinRepository.existsByPinHash("pin-hash")).willReturn(true);
 
         ProductCreateRequest request = new ProductCreateRequest(
-                null, SaleType.PERSONAL, "스타벅스", "아메리카노 T", 4500,
-                LocalDate.now().plusDays(10), 4000, "1111-2222-3333", null, null
+                null,
+                SaleType.PERSONAL,
+                "스타벅스",
+                "아메리카노 T",
+                4500,
+                LocalDate.now().plusDays(10),
+                4000,
+                "1111-2222-3333",
+                null,
+                null
         );
 
         assertThatThrownBy(() -> productService.createProduct(1L, request))
