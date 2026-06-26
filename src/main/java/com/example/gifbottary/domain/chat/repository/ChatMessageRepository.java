@@ -24,4 +24,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
            "ORDER BY m.id ASC")
     List<ChatMessage> findMissedMessages(@Param("roomId") Long roomId, 
                                          @Param("lastMessageId") Long lastMessageId);
+
+    @Query("SELECT MAX(m.id) FROM ChatMessage m WHERE m.chatRoom.id = :roomId")
+    Long findMaxMessageIdByRoomId(@Param("roomId") Long roomId);
 }

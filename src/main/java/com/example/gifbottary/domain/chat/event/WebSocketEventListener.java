@@ -1,6 +1,7 @@
 package com.example.gifbottary.domain.chat.event;
 
 import com.example.gifbottary.domain.chat.dto.StompPrincipal;
+import com.example.gifbottary.domain.chat.service.ChatMemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -21,6 +22,7 @@ public class WebSocketEventListener {
 
     private record SessionRoomInfo(Long roomId, StompPrincipal principal) {}
     private final Map<String, SessionRoomInfo> sessionRoomMap = new ConcurrentHashMap<>();
+    private final ChatMemberService chatMemberService;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
@@ -54,7 +56,8 @@ public class WebSocketEventListener {
 
         SessionRoomInfo info = sessionRoomMap.remove(sessionId);
         if (info != null) {
-            log.info("일시적 소켓 단절 감지 (세션 맵 정리 완료, 퇴장 알림 미발송) - Room: {}, User: {}", info.roomId(), info.principal().userName());
+            chatMemberService.updateLastReadMessageId(info.roomId(), info.principal().userId());
+            log.info("일시적 소켓 단절 감지 (마지막 수신 커서 DB 동기화 완료) - Room: {}, User: {}", info.roomId(), info.principal().userName());
         } else {
             log.info("Web socket connection disconnected without room subscription. Session ID: {}", sessionId);
         }
