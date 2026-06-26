@@ -234,7 +234,7 @@ public class ProductService {
     }
 
     private boolean isAdmin(User seller) {
-        return seller.getRole() != null && "ADMIN".equalsIgnoreCase(seller.getRole().trim());
+        return seller.getRole() != null && seller.getRole() == Role.ADMIN;
     }
 
     private List<String> extractPinNumbers(String pinNumber, List<String> pinNumbers) {
