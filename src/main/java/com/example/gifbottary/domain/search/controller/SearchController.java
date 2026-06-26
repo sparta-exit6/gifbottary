@@ -5,7 +5,6 @@ import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.product.dto.request.ProductSearchRequest;
 import com.example.gifbottary.domain.product.dto.response.ProductSummaryResponse;
-import com.example.gifbottary.domain.product.enums.SaleStatus;
 import com.example.gifbottary.domain.product.enums.SaleType;
 import com.example.gifbottary.domain.product.service.ProductService;
 import com.example.gifbottary.domain.search.dto.response.PopularKeywordResponse;
@@ -42,12 +41,11 @@ public class SearchController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) SaleType saleType,
-            @RequestParam(required = false) SaleStatus saleStatus,
             @RequestParam(required = false) Integer minPrice,
             @RequestParam(required = false) Integer maxPrice,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        ProductSearchRequest request = new ProductSearchRequest(keyword, brand, saleType, saleStatus, minPrice, maxPrice);
+        ProductSearchRequest request = new ProductSearchRequest(keyword, brand, saleType, null, minPrice, maxPrice);
         searchService.saveSearchKeyword(userId, request);
         return ResponseEntity.ok(ApiResponse.ok(productService.findProducts(request, pageable)));
     }
