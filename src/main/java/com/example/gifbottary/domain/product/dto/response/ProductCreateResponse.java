@@ -4,43 +4,40 @@ import com.example.gifbottary.domain.product.entity.GifticonSale;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
- * 판매글 단건 상세 응답 DTO입니다.
+ * 판매글 생성 직후 반환하는 응답입니다.
+ * 핀 검수 상태는 여러 핀이 섞일 수 있으므로 생성 응답에 포함하지 않고,
+ * 상세 조회나 핀 검수 조회 API에서 확인합니다.
  */
-public record ProductDetailResponse(
+public record ProductCreateResponse(
         Long saleId,
         Long productId,
-        Long sellerId,
         String saleType,
         String brand,
         String productName,
+        Integer faceValue,
         LocalDate expireAt,
         Integer salePrice,
         Integer stock,
         String saleStatus,
         String imageUrl,
-        List<PinDetailResponse> pins,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime createdAt
 ) {
-    public static ProductDetailResponse from(GifticonSale sale, List<PinDetailResponse> pins) {
-        return new ProductDetailResponse(
+    public static ProductCreateResponse from(GifticonSale sale) {
+        return new ProductCreateResponse(
                 sale.getId(),
                 sale.getProduct().getId(),
-                sale.getSeller().getId(),
                 sale.getSaleType().name(),
                 sale.getProduct().getBrand(),
                 sale.getProduct().getProductName(),
+                sale.getProduct().getFaceValue(),
                 sale.getExpireAt(),
                 sale.getSalePrice(),
                 sale.getStock(),
                 sale.getSaleStatus().name(),
                 sale.getProduct().getImageUrl(),
-                pins,
-                sale.getCreatedAt(),
-                sale.getUpdatedAt()
+                sale.getCreatedAt()
         );
     }
 }
