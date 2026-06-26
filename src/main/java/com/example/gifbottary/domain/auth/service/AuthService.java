@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.auth.service;
 import com.example.gifbottary.domain.auth.dto.request.LoginRequest;
 import com.example.gifbottary.domain.auth.dto.request.SignupRequest;
 import com.example.gifbottary.domain.auth.dto.response.LoginResponse;
+import com.example.gifbottary.domain.auth.dto.response.LogoutResponse;
 import com.example.gifbottary.domain.auth.dto.response.SignupResponse;
 import com.example.gifbottary.domain.auth.jwt.JwtProvider;
 import com.example.gifbottary.domain.user.entity.User;
@@ -52,5 +53,13 @@ public class AuthService {
         String accessToken = jwtProvider.createAccessToken(user);
 
         return LoginResponse.from(accessToken);
+    }
+
+    @Transactional(readOnly = true)
+    public LogoutResponse logout() {
+        // 현재 로그아웃은 클라이언트에서 Access Token을 삭제하는 방식으로 처리한다.
+        // 서버에서는 인증된 사용자만 접근 가능한 엔드포인트를 제공하고,
+        // 별도의 토큰 무효화 처리는 수행하지 않는다.
+        return LogoutResponse.from();
     }
 }
