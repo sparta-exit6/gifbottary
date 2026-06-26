@@ -31,7 +31,7 @@ public class CouponService {
             throw new ServiceException(ErrorCode.COUPON_ALREADY_ISSUED);
         }
 
-        Coupon coupon = couponRepository.findById(couponId)
+        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.COUPON_NOT_FOUND));
 
         coupon.issue();

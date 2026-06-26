@@ -66,25 +66,25 @@ class CouponConcurrencyTest {
     void issueCoupon_concurrently_100users() throws InterruptedException {
         // given
         int threadCount = 100;
-        ExecutorService executorService = Executors.newFixedThreadPool(32);
-        CountDownLatch latch = new CountDownLatch(threadCount);
+        try (ExecutorService executorService = Executors.newFixedThreadPool(32)) {
+            CountDownLatch latch = new CountDownLatch(threadCount);
 
-        // when
-        for (int i = 0; i < threadCount; i++) {
-            final Long userId = userIds.get(i);
-            executorService.submit(() -> {
-                try {
-                    couponService.issueCoupon(couponId, userId);
-                } catch (Exception e) {
-                    // 수량 초과 시 예외 발생
-                } finally {
-                    latch.countDown();
-                }
-            });
+            // when
+            for (int i = 0; i < threadCount; i++) {
+                final Long userId = userIds.get(i);
+                executorService.submit(() -> {
+                    try {
+                        couponService.issueCoupon(couponId, userId);
+                    } catch (Exception e) {
+                        // 수량 초과 시 예외 발생
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
         }
-
-        latch.await();
-        executorService.shutdown();
 
         // then
         long actualIssuedCount = userCouponRepository.count();
