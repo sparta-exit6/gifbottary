@@ -1,6 +1,7 @@
 package com.example.gifbottary.domain.purchase.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
+import com.example.gifbottary.domain.product.enums.SaleType;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.purchase.enums.PinStatus;
@@ -68,15 +69,38 @@ public class Purchase extends BaseEntity {
         validateQuantity(quantity);
 
         Purchase purchase = new Purchase();
+
         purchase.buyer = buyer;
         purchase.sale = sale;
+
         purchase.quantity = quantity;
         purchase.unitPrice = sale.getSalePrice();
         purchase.totalPrice = quantity * sale.getSalePrice();
+
         purchase.purchaseStatus = PurchaseStatus.PENDING_PAYMENT;
         purchase.pinStatus = PinStatus.MASKED;
         purchase.refundLocked = false;
+
         return purchase;
+    }
+
+    /**
+     * 결제 완료 (상태 변경)
+     */
+    public void completePayment() {
+        this.purchasedAt = LocalDateTime.now();
+
+        if (this.sale.getSaleType() == SaleType.PERSONAL) {
+            this.purchaseStatus = PurchaseStatus.CONFIRMED;
+            this.pinStatus = PinStatus.REVEALED;
+            this.refundLocked = true;
+            this.confirmedAt = LocalDateTime.now();
+            return;
+        }
+
+        this.purchaseStatus = PurchaseStatus.PAID;
+        this.pinStatus = PinStatus.MASKED;
+        this.refundLocked = false;
     }
 
     /**
@@ -155,6 +179,30 @@ public class Purchase extends BaseEntity {
     /**
      * 구매 확정 상태인지 확인합니다.
      */
+    public static Purchase createPlatformPurchase(User buyer, GifticonSale sale) {
+        Purchase purchase = new Purchase();
+        purchase.buyer = buyer;
+        purchase.sale = sale;
+        purchase.purchaseStatus = PurchaseStatus.PAID;
+        purchase.purchasedAt = LocalDateTime.now();
+        return purchase;
+    }
+
+    /**
+     * 중고 상품 구매확정(즉시)
+     */
+    public static Purchase createPersonalPurchase(User buyer, GifticonSale sale) {
+        Purchase purchase = new Purchase();
+        purchase.buyer = buyer;
+        purchase.sale = sale;
+        purchase.purchaseStatus = PurchaseStatus.CONFIRMED;
+        purchase.pinStatus = PinStatus.REVEALED;
+        purchase.refundLocked = true;
+        purchase.purchasedAt = LocalDateTime.now();
+        purchase.confirmedAt = LocalDateTime.now();
+        return purchase;
+    }
+
     public boolean isConfirmed() {
         return this.purchaseStatus == PurchaseStatus.CONFIRMED;
     }
