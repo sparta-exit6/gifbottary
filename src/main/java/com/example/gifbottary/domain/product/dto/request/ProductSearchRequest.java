@@ -11,4 +11,12 @@ public record ProductSearchRequest(
         Integer minPrice,
         Integer maxPrice
 ) {
+
+    public boolean hasKeyword() {
+        return keyword != null && !keyword.isBlank();
+    }
+
+    public boolean hasBrand() {
+        return brand != null && !brand.isBlank();
+    }
 }
