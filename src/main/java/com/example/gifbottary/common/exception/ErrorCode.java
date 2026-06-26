@@ -32,10 +32,11 @@ public enum ErrorCode {
     INVALID_SALE_STATUS(HttpStatus.BAD_REQUEST, "PRODUCT_008", "현재 상태에서는 요청한 판매 상태로 변경할 수 없습니다."),
     INVALID_EXPIRE_AT(HttpStatus.BAD_REQUEST, "PRODUCT_009", "유효기간은 오늘 이후여야 합니다."),
     PRODUCT_NOT_AVAILABLE(HttpStatus.CONFLICT, "PRODUCT_010", "거래 가능한 상품이 아닙니다."),
+    PLATFORM_SALE_ADMIN_ONLY(HttpStatus.FORBIDDEN, "PRODUCT_011", "플랫폼 상품 등록은 관리자만 가능합니다."),
 
     PIN_NOT_FOUND(HttpStatus.NOT_FOUND, "PIN_001", "핀 번호를 찾을 수 없습니다."),
     INVALID_PIN_INPUT(HttpStatus.BAD_REQUEST, "PIN_002", "핀 번호는 비어 있을 수 없습니다."),
-    INVALID_PIN_COUNT(HttpStatus.BAD_REQUEST, "PIN_003", "핀 번호 개수가 판매 정책과 맞지 않습니다."),
+    INVALID_PIN_COUNT(HttpStatus.BAD_REQUEST, "PIN_003", "핀 번호를 여러 개 등록할 수 없습니다."),
     INVALID_PIN_STATUS(HttpStatus.BAD_REQUEST, "PIN_004", "요청한 핀 상태로 변경할 수 없습니다."),
     PIN_ENCRYPTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PIN_005", "핀 번호 암호화에 실패했습니다."),
     PIN_DECRYPTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PIN_006", "핀 번호 복호화에 실패했습니다."),

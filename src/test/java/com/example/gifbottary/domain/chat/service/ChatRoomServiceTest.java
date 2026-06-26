@@ -7,7 +7,7 @@ import com.example.gifbottary.domain.chat.entity.ChatRoom;
 import com.example.gifbottary.domain.chat.repository.ChatMemberRepository;
 import com.example.gifbottary.domain.chat.repository.ChatRoomRepository;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
-import com.example.gifbottary.domain.product.repositroy.GifticonSaleRepository;
+import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
