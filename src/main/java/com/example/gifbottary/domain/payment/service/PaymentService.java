@@ -72,7 +72,7 @@ public class PaymentService {
 		Purchase purchase = payment.getPurchase();
 
 		payment.complete();
-		purchase.completePayment();
+		//purchase.completePayment();
 		purchase.getSale().deductStock();
 
 		return PaymentConfirmResponse.from(payment);
