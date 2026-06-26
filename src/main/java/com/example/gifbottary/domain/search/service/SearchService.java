@@ -12,6 +12,7 @@ import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +21,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 상품 검색과 인기/최근 검색어 기능을 담당하는 서비스 클래스입니다.
- * 현재 팀 구조에서는 구현체가 하나뿐이므로 인터페이스 없이 단일 클래스로 관리합니다.
+ * 상품 검색과 연결되는 최근 검색어, 인기 검색어 기능을 담당하는 서비스입니다.
  */
 @Service
 public class SearchService {
@@ -37,37 +37,42 @@ public class SearchService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * 상품 검색을 수행하고, 로그인 사용자의 검색어는 최근/인기 검색어 집계 대상으로 저장합니다.
-     */
     @CacheEvict(
             cacheNames = CacheConfig.POPULAR_KEYWORD_CACHE,
             allEntries = true,
-            condition = "#request.keyword() != null && !#request.keyword().isBlank()"
+            condition = "#request != null && (#request.hasKeyword() || #request.hasBrand())"
     )
     @Transactional
     public void saveSearchKeyword(Long userId, ProductSearchRequest request) {
-        if (userId != null && request.keyword() != null && !request.keyword().isBlank()) {
-            saveKeyword(userId, request.keyword().trim());
+        if (userId == null || request == null) {
+            return;
         }
+
+        String keyword = resolveSearchKeyword(request);
+        if (keyword == null) {
+            return;
+        }
+
+        saveKeyword(userId, keyword);
     }
 
+    /**
+     * v1 인기 검색어 조회입니다.
+     * 캐시를 사용하지 않고 매 요청마다 DB 집계 결과를 조회합니다.
+     */
+    @Transactional(readOnly = true)
+    public List<PopularKeywordResponse> findPopularKeywordsV1(int limit) {
+        return getPopularKeywords(limit);
+    }
+
+    /**
+     * v2 인기 검색어 조회입니다.
+     * limit 기준으로 로컬 메모리 캐시를 사용합니다.
+     */
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = CacheConfig.POPULAR_KEYWORD_CACHE, key = "#limit")
-    public List<PopularKeywordResponse> findPopularKeywords(int limit) {
-        if (limit < 1) {
-            throw new ServiceException(ErrorCode.INVALID_QUERY_PARAMETER);
-        }
-
-        AtomicInteger rank = new AtomicInteger(1);
-        return searchKeywordRepository.findPopularKeywords(PageRequest.of(0, limit))
-                .stream()
-                .map(projection -> new PopularKeywordResponse(
-                        rank.getAndIncrement(),
-                        projection.getKeyword(),
-                        projection.getTotalCount().intValue()
-                ))
-                .toList();
+    public List<PopularKeywordResponse> findPopularKeywordsV2(int limit) {
+        return getPopularKeywords(limit);
     }
 
     @Transactional(readOnly = true)
@@ -94,15 +99,52 @@ public class SearchService {
     }
 
     /**
-     * 같은 사용자의 동일 검색어는 하나의 row로 유지하고, 검색 횟수만 증가시킵니다.
+     * 같은 사용자가 같은 검색어를 동시에 여러 번 요청해도
+     * unique 제약 예외로 실패하지 않도록 저장 로직을 보완합니다.
      */
     private void saveKeyword(Long userId, String keyword) {
         User user = findUser(userId);
         searchKeywordRepository.findByUser_IdAndKeyword(userId, keyword)
                 .ifPresentOrElse(
                         SearchKeyword::increaseCount,
-                        () -> searchKeywordRepository.save(new SearchKeyword(user, keyword))
+                        () -> saveKeywordWhenAbsent(user, keyword)
                 );
+    }
+
+    private void saveKeywordWhenAbsent(User user, String keyword) {
+        try {
+            searchKeywordRepository.saveAndFlush(new SearchKeyword(user, keyword));
+        } catch (DataIntegrityViolationException exception) {
+            // 동시 요청으로 이미 insert 된 경우 조회 후 카운트만 증가시킵니다.
+            searchKeywordRepository.findByUser_IdAndKeyword(user.getId(), keyword)
+                    .ifPresent(SearchKeyword::increaseCount);
+        }
+    }
+
+    private List<PopularKeywordResponse> getPopularKeywords(int limit) {
+        if (limit < 1) {
+            throw new ServiceException(ErrorCode.INVALID_QUERY_PARAMETER);
+        }
+
+        AtomicInteger rank = new AtomicInteger(1);
+        return searchKeywordRepository.findPopularKeywords(PageRequest.of(0, limit))
+                .stream()
+                .map(projection -> new PopularKeywordResponse(
+                        rank.getAndIncrement(),
+                        projection.getKeyword(),
+                        projection.getTotalCount().intValue()
+                ))
+                .toList();
+    }
+
+    private String resolveSearchKeyword(ProductSearchRequest request) {
+        if (request.hasKeyword()) {
+            return request.keyword().trim();
+        }
+        if (request.hasBrand()) {
+            return request.brand().trim();
+        }
+        return null;
     }
 
     private User findUser(Long userId) {

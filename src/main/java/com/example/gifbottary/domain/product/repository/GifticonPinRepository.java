@@ -27,3 +27,4 @@ public interface GifticonPinRepository extends JpaRepository<GifticonPin, Long> 
             PinSaleStatus pinSaleStatus
     );
 }
+

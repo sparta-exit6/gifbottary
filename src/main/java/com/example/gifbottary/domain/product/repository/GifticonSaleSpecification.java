@@ -2,6 +2,7 @@ package com.example.gifbottary.domain.product.repository;
 
 import com.example.gifbottary.domain.product.dto.request.ProductSearchRequest;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
+import com.example.gifbottary.domain.product.enums.SaleStatus;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -29,6 +30,9 @@ public final class GifticonSaleSpecification {
             Join<Object, Object> productJoin = root.join("product", JoinType.INNER);
             List<Predicate> predicates = new ArrayList<>();
 
+            // 공개 목록에서는 실제 구매 가능한 판매글만 노출합니다.
+            predicates.add(criteriaBuilder.equal(root.get("saleStatus"), SaleStatus.ON_SALE));
+
             if (request.keyword() != null && !request.keyword().isBlank()) {
                 String keywordPattern = "%" + request.keyword().trim().toLowerCase() + "%";
                 predicates.add(
@@ -48,10 +52,6 @@ public final class GifticonSaleSpecification {
 
             if (request.saleType() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("saleType"), request.saleType()));
-            }
-
-            if (request.saleStatus() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("saleStatus"), request.saleStatus()));
             }
 
             if (request.minPrice() != null) {
