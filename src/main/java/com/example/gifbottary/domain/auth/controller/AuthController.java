@@ -1,8 +1,10 @@
 package com.example.gifbottary.domain.auth.controller;
 
+import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.auth.dto.request.LoginRequest;
 import com.example.gifbottary.domain.auth.dto.request.SignupRequest;
 import com.example.gifbottary.domain.auth.dto.response.LoginResponse;
+import com.example.gifbottary.domain.auth.dto.response.LogoutResponse;
 import com.example.gifbottary.domain.auth.dto.response.SignupResponse;
 import com.example.gifbottary.domain.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -28,5 +30,10 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<LogoutResponse> logout() {
+        return ApiResponse.ok(authService.logout());
     }
 }

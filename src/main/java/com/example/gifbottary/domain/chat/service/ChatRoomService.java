@@ -4,6 +4,7 @@ import com.example.gifbottary.common.exception.ErrorCode;
 import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomCreateResponse;
+import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.gifbottary.domain.chat.entity.ChatMember;
 import com.example.gifbottary.domain.chat.entity.ChatRoom;
 import com.example.gifbottary.domain.chat.repository.ChatMemberRepository;
@@ -28,6 +29,10 @@ public class ChatRoomService {
     private final ChatMemberRepository chatMemberRepository;
     private final GifticonSaleRepository gifticonSaleRepository;
     private final UserRepository userRepository;
+
+    public List<ChatRoomListResponse> getRooms(Long userId) {
+        return chatRoomRepository.findRoomListByUserId(userId);
+    }
 
     @Transactional
     public ChatRoomCreateResponse createRoom(ChatRoomCreateRequest request) {

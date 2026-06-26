@@ -4,6 +4,7 @@ import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
+import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.gifbottary.domain.chat.service.ChatMessageService;
 import com.example.gifbottary.domain.chat.service.ChatRoomService;
 import jakarta.validation.Valid;
@@ -15,24 +16,32 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/chats")
+@RequestMapping("/api/v1/chatrooms")
 @RequiredArgsConstructor
 public class ChatRoomController {
 
     private final ChatMessageService chatMessageService;
     private final ChatRoomService chatRoomService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ChatRoomListResponse>>> getRooms(
+            @RequestParam("userId") Long userId // 추후 JWT AuthenticationPrincipal로 대체
+    ) {
+        List<ChatRoomListResponse> responses = chatRoomService.getRooms(userId);
+        return ResponseEntity.ok(ApiResponse.ok(responses));
+    }
+
     @GetMapping("/{roomId}/messages")
-    public ResponseEntity<List<ChatMessageResponse>> getChatMessages(
+    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getChatMessages(
             @PathVariable Long roomId,
             @RequestParam(value = "lastMessageId", required = false) Long lastMessageId,
             @RequestParam(value = "size", defaultValue = "20") int size
     ) {
         List<ChatMessageResponse> messages = chatMessageService.getMessages(roomId, lastMessageId, size);
-        return ResponseEntity.ok(messages);
+        return ResponseEntity.ok(ApiResponse.ok(messages));
     }
 
-    @PostMapping("/rooms")
+    @PostMapping
     public ResponseEntity<ApiResponse<ChatRoomCreateResponse>> createRoom(
             @Valid @RequestBody ChatRoomCreateRequest request
     ) {
