@@ -163,4 +163,9 @@ public class GifticonSale extends BaseEntity {
             throw new IllegalStateException("개인 판매글은 핀을 1개만 가질 수 있습니다.");
         }
     }
+
+    // 빌드에러로 인해 임시 메서드 만들어 놓겠습니다!
+    public void deductStock() {
+        this.stock -= 1;
+    }
 }
