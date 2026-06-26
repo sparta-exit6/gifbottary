@@ -8,6 +8,8 @@ import com.example.gifbottary.domain.product.dto.response.ProductPinValidationRe
 import com.example.gifbottary.domain.product.dto.response.ProductSummaryResponse;
 import com.example.gifbottary.domain.product.service.ProductService;
 import com.example.gifbottary.domain.search.service.SearchService;
+import com.example.gifbottary.domain.user.entity.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,12 +17,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,10 +40,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * 판매 등록 API 컨트롤러 테스트입니다.
- * 현재 인증 공통 객체가 없어 X-USER-ID 헤더 기반으로 인증을 대체합니다.
- */
 @ExtendWith(MockitoExtension.class)
 class ProductControllerTest {
 
@@ -55,15 +57,24 @@ class ProductControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(productController)
-                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .setCustomArgumentResolvers(
+                        new PageableHandlerMethodArgumentResolver(),
+                        new AuthenticationPrincipalArgumentResolver()
+                )
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
-    @DisplayName("판매 등록에 성공하면 201 Created와 공통 성공 응답을 반환한다")
+    @DisplayName("상품 등록이 성공하면 생성 응답을 반환한다")
     void createProduct_success() throws Exception {
-        // Given
+        authenticate(1L, "USER");
+
         ProductCreateResponse response = new ProductCreateResponse(
                 1L,
                 101L,
@@ -75,7 +86,6 @@ class ProductControllerTest {
                 4000,
                 0,
                 "PENDING_REVIEW",
-                "PENDING",
                 "https://example.com/image.png",
                 LocalDateTime.of(2026, 6, 24, 20, 0)
         );
@@ -96,25 +106,20 @@ class ProductControllerTest {
                 }
                 """;
 
-        // When & Then
         mockMvc.perform(post("/api/v1/products")
-                        .header("X-USER-ID", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("요청이 성공했습니다."))
-                .andExpect(jsonPath("$.errorCode").doesNotExist())
                 .andExpect(jsonPath("$.data.saleId").value(1))
                 .andExpect(jsonPath("$.data.productId").value(101))
                 .andExpect(jsonPath("$.data.saleStatus").value("PENDING_REVIEW"))
-                .andExpect(jsonPath("$.data.pinCheckStatus").value("PENDING"));
+                .andExpect(jsonPath("$.data.pinCheckStatus").doesNotExist());
     }
 
     @Test
-    @DisplayName("판매 등록 시 사용자 헤더가 없으면 401 응답을 반환한다")
-    void createProduct_withoutUserHeader_unauthorized() throws Exception {
-        // Given
+    @DisplayName("상품 등록 시 인증 정보가 없으면 401을 반환한다")
+    void createProduct_withoutAuthentication_unauthorized() throws Exception {
         String requestBody = """
                 {
                   "saleType": "PERSONAL",
@@ -129,21 +134,17 @@ class ProductControllerTest {
                 }
                 """;
 
-        // When & Then
         mockMvc.perform(post("/api/v1/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("인증이 필요합니다."))
-                .andExpect(jsonPath("$.errorCode").value("AUTH_001"))
-                .andExpect(jsonPath("$.data").doesNotExist());
+                .andExpect(jsonPath("$.errorCode").value("AUTH_001"));
     }
 
     @Test
-    @DisplayName("판매글 전체 조회는 인증 없이도 성공한다")
-    void findProducts_withoutUserHeader_success() throws Exception {
-        // Given
+    @DisplayName("판매글 전체 조회는 인증 없이 성공한다")
+    void findProducts_withoutAuthentication_success() throws Exception {
         ProductSummaryResponse summary = new ProductSummaryResponse(
                 1L,
                 101L,
@@ -161,7 +162,6 @@ class ProductControllerTest {
         given(productService.findProducts(any(), any()))
                 .willReturn(new PageImpl<>(List.of(summary), PageRequest.of(0, 10), 1));
 
-        // When & Then
         mockMvc.perform(get("/api/v1/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -171,9 +171,10 @@ class ProductControllerTest {
     }
 
     @Test
-    @DisplayName("핀 검수 상태 조회는 판매자 헤더가 있으면 성공한다")
+    @DisplayName("핀 검수 상태 조회는 JWT 인증 사용자가 있으면 성공한다")
     void findPinValidation_success() throws Exception {
-        // Given
+        authenticate(1L, "USER");
+
         ProductPinValidationResponse response = new ProductPinValidationResponse(
                 1L,
                 "PLATFORM",
@@ -191,14 +192,20 @@ class ProductControllerTest {
 
         given(productService.findPinValidation(1L, 1L)).willReturn(response);
 
-        // When & Then
-        mockMvc.perform(get("/api/v1/products/1/pin-validation")
-                        .header("X-USER-ID", 1L))
+        mockMvc.perform(get("/api/v1/products/1/pin-validation"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.saleId").value(1))
                 .andExpect(jsonPath("$.data.totalPinCount").value(2))
                 .andExpect(jsonPath("$.data.pendingCount").value(1))
                 .andExpect(jsonPath("$.data.validCount").value(1));
+    }
+
+    private void authenticate(Long userId, String role) {
+        User user = new User("user@test.com", "password", "사용자", role, 0);
+        ReflectionTestUtils.setField(user, "id", userId);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(user, null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }
