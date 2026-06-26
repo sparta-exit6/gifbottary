@@ -41,7 +41,7 @@ public class SecurityConfig {
                                 "/api/v1/products/*",
                                 "/api/v1/search/products",
                                 "/api/v1/search/popular-keywords",
-                                "/api/v1/purchases/*"
+                                "/api/v2/search/popular-keywords"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

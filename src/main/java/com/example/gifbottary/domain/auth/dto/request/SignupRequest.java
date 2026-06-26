@@ -1,6 +1,7 @@
 package com.example.gifbottary.domain.auth.dto.request;
 
 
+import com.example.gifbottary.domain.user.entity.Role;
 import com.example.gifbottary.domain.user.entity.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -27,7 +28,7 @@ public class SignupRequest {
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .name(name)
-                .role("USER")
+                .role(Role.USER)
                 .pointBalance(0)
                 .build();
     }
