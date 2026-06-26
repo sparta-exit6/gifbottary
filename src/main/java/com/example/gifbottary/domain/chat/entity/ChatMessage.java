@@ -35,10 +35,6 @@ public class ChatMessage extends BaseEntity {
     @Column(nullable = false)
     private MessageType messageType;
 
-    public ChatMessage(ChatRoom chatRoom, User sender, String content) {
-        this(chatRoom, sender, content, MessageType.TALK);
-    }
-
     public ChatMessage(ChatRoom chatRoom, User sender, String content, MessageType messageType) {
         this.chatRoom = chatRoom;
         this.sender = sender;
