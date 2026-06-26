@@ -1,6 +1,6 @@
 package com.example.gifbottary.domain.auth.dto.request;
 
-
+import com.example.gifbottary.domain.user.entity.Role;
 import com.example.gifbottary.domain.user.entity.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -23,11 +23,12 @@ public class SignupRequest {
     private String name;
 
     public User toEntity(PasswordEncoder passwordEncoder) {
+
         return User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .name(name)
-                .role("USER")
+                .role(Role.USER)          // 항상 USER(관리자는 회원가입 x)
                 .pointBalance(0)
                 .build();
     }

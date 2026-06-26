@@ -16,6 +16,7 @@ import com.example.gifbottary.domain.product.repository.GifticonPinRepository;
 import com.example.gifbottary.domain.product.repository.GifticonProductRepository;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import com.example.gifbottary.domain.product.repository.GifticonSaleSpecification;
+import com.example.gifbottary.domain.user.entity.Role;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -234,7 +235,7 @@ public class ProductService {
     }
 
     private boolean isAdmin(User seller) {
-        return seller.getRole() != null && "ADMIN".equalsIgnoreCase(seller.getRole().trim());
+        return seller.getRole() != null && seller.getRole() == Role.ADMIN;
     }
 
     private List<String> extractPinNumbers(String pinNumber, List<String> pinNumbers) {
