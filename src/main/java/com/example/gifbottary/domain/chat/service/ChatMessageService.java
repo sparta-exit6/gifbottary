@@ -1,10 +1,15 @@
 package com.example.gifbottary.domain.chat.service;
 
+import com.example.gifbottary.common.exception.ErrorCode;
+import com.example.gifbottary.common.exception.ServiceException;
+import com.example.gifbottary.domain.chat.dto.request.ChatMessageListRequest;
 import com.example.gifbottary.domain.chat.dto.request.ChatMessageSendRequest;
+import com.example.gifbottary.domain.chat.dto.request.ChatMissedMessageRequest;
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.entity.ChatMessage;
 import com.example.gifbottary.domain.chat.entity.ChatRoom;
 import com.example.gifbottary.domain.chat.enums.MessageType;
+import com.example.gifbottary.domain.chat.repository.ChatMemberRepository;
 import com.example.gifbottary.domain.chat.repository.ChatMessageRepository;
 import com.example.gifbottary.domain.chat.repository.ChatRoomRepository;
 import com.example.gifbottary.domain.user.entity.User;
@@ -26,15 +31,24 @@ public class ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final ChatMemberRepository chatMemberRepository;
     private final UserRepository userRepository;
+
+    public void validateChatMember(Long roomId, Long userId) {
+        if (!chatMemberRepository.existsByChatRoomIdAndUserId(roomId, userId)) {
+            throw new ServiceException(ErrorCode.CHATROOM_ACCESS_DENIED);
+        }
+    }
 
     @Transactional
     public ChatMessageResponse saveMessage(Long senderId, ChatMessageSendRequest request) {
+        validateChatMember(request.roomId(), senderId);
+
         ChatRoom chatRoom = chatRoomRepository.findById(request.roomId())
-                .orElseThrow();
+                .orElseThrow(() -> new ServiceException(ErrorCode.CHATROOM_NOT_FOUND));
 
         User sender = userRepository.findById(senderId)
-                .orElseThrow();
+                .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
 
         ChatMessage message = new ChatMessage(chatRoom, sender, request.content(), MessageType.TALK);
         ChatMessage savedMessage = chatMessageRepository.save(message);
@@ -47,10 +61,10 @@ public class ChatMessageService {
     @Transactional
     public ChatMessageResponse saveSystemMessage(Long roomId, Long userId, String content) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-                .orElseThrow();
+                .orElseThrow(() -> new ServiceException(ErrorCode.CHATROOM_NOT_FOUND));
 
         User sender = userRepository.findById(userId)
-                .orElseThrow();
+                .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
 
         ChatMessage message = new ChatMessage(chatRoom, sender, content, MessageType.SYSTEM);
         ChatMessage savedMessage = chatMessageRepository.save(message);
@@ -58,17 +72,19 @@ public class ChatMessageService {
         return ChatMessageResponse.from(savedMessage);
     }
 
-    public List<ChatMessageResponse> getMessages(Long roomId, Long lastMessageId, int size) {
-        Pageable pageable = PageRequest.of(0, size);
-        List<ChatMessage> messages = chatMessageRepository.findMessages(roomId, lastMessageId, pageable);
+    public List<ChatMessageResponse> getMessages(ChatMessageListRequest request, Long userId) {
+        validateChatMember(request.roomId(), userId);
+        Pageable pageable = PageRequest.of(0, request.size());
+        List<ChatMessage> messages = chatMessageRepository.findMessages(request.roomId(), request.lastMessageId(), pageable);
 
         return messages.stream()
                 .map(ChatMessageResponse::from)
                 .collect(Collectors.toList());
     }
 
-    public List<ChatMessageResponse> getMissedMessages(Long roomId, Long lastMessageId) {
-        List<ChatMessage> messages = chatMessageRepository.findMissedMessages(roomId, lastMessageId);
+    public List<ChatMessageResponse> getMissedMessages(ChatMissedMessageRequest request, Long userId) {
+        validateChatMember(request.roomId(), userId);
+        List<ChatMessage> messages = chatMessageRepository.findMissedMessages(request.roomId(), request.lastMessageId());
 
         return messages.stream()
                 .map(ChatMessageResponse::from)

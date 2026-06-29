@@ -42,9 +42,9 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public ChatRoomCreateResponse createRoom(ChatRoomCreateRequest request) {
+    public ChatRoomCreateResponse createRoom(ChatRoomCreateRequest request, Long buyerId) {
         // 1. 이미 존재하는 채팅방인지 검증 (존재하면 해당 방 ID 반환)
-        Optional<ChatRoom> existingRoom = chatRoomRepository.findBySaleIdAndBuyerId(request.saleId(), request.buyerId());
+        Optional<ChatRoom> existingRoom = chatRoomRepository.findBySaleIdAndBuyerId(request.saleId(), buyerId);
         if (existingRoom.isPresent()) {
             return new ChatRoomCreateResponse(existingRoom.get().getId());
         }
@@ -52,12 +52,12 @@ public class ChatRoomService {
         // 2. 데이터 조회
         GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
                 .orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
-        User buyer = userRepository.findById(request.buyerId())
+        User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
 
         // 자신이 올린 판매글에 본인이 채팅방을 파는 것은 금지 (비즈니스 로직)
         if (sale.getSeller().getId().equals(buyer.getId())) {
-            //TODO: 본인 판매글에 채팅방 생성 못하게 예외 발생, 추후 리팩토링
+            throw new ServiceException(ErrorCode.CANNOT_CHAT_WITH_SELF);
         }
 
         // 3. 채팅방 생성 및 저장
