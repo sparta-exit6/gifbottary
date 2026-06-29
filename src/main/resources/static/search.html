@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>검색 결과 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.href='./index.html'">
+        <span class="logo-icon">🎁</span>
+        <span>기프보따리</span>
+    </div>
+
+    <div class="search-box">
+        <input id="searchKeywordInput" type="text" placeholder="검색어를 입력하세요"
+               onkeydown="handleSearchEnter(event)">
+        <button onclick="moveSearchPage()">🔍</button>
+    </div>
+
+    <nav class="nav">
+        <button onclick="goRegisterPage()">상품 등록</button>
+        <button onclick="location.href='./mypage.html'">마이페이지</button>
+        <button onclick="logout()">로그아웃</button>
+    </nav>
+</header>
+
+<main class="search-page">
+
+    <section class="search-title-box">
+        <h1>검색 결과</h1>
+        <p>
+            <strong id="searchKeywordText">검색어</strong>
+            에 대한 기프트카드 검색 결과입니다.
+        </p>
+    </section>
+
+    <section class="popular-keyword-box">
+        <h2>인기 검색어</h2>
+        <div id="popularKeywordList" class="popular-keyword-list">
+            <!-- JS에서 인기 검색어 렌더링 -->
+        </div>
+    </section>
+
+    <section class="search-filter-box">
+        <button class="filter-btn active" onclick="changeSearchType('ALL', this)">전체</button>
+        <button class="filter-btn" onclick="changeSearchType('PERSONAL', this)">개인 판매</button>
+        <button class="filter-btn" onclick="changeSearchType('PLATFORM', this)">관리자 판매</button>
+
+        <select id="searchSort" onchange="reloadSearchProducts()">
+            <option value="LATEST">최신순</option>
+            <option value="PRICE_ASC">가격 낮은순</option>
+            <option value="PRICE_DESC">가격 높은순</option>
+        </select>
+    </section>
+
+    <section class="search-result-info">
+        <span id="searchResultCount">총 0개의 상품</span>
+    </section>
+
+    <section id="searchProductList" class="search-product-grid">
+        <!-- JS에서 검색 결과 상품 렌더링 -->
+    </section>
+
+</main>
+
+<script src="./js/app.js"></script>
+<script src="./js/search.js"></script>
+</body>
+</html>
