@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 수정 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.href='./index.html'">
+        <span class="logo-icon">🎁</span>
+        <span>기프보따리</span>
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="검색어를 입력하세요">
+        <button>🔍</button>
+    </div>
+
+    <nav class="nav">
+        <button onclick="location.href='./my-products.html'">판매내역</button>
+        <button onclick="location.href='./mypage.html'">마이페이지</button>
+        <button onclick="logout()">로그아웃</button>
+    </nav>
+</header>
+
+<main class="edit-page">
+    <section class="edit-container">
+
+        <div class="edit-left">
+            <div class="edit-image-preview" id="editImagePreview">
+                🎁
+            </div>
+
+            <label class="edit-file-btn" for="editProductImage">이미지 변경</label>
+            <input id="editProductImage" type="file" accept="image/*" hidden onchange="previewEditImage(event)">
+
+            <div class="edit-notice">
+                <strong>안내</strong>
+                <p>판매완료 상품은 수정이 제한될 수 있습니다.</p>
+            </div>
+        </div>
+
+        <div class="edit-form-area">
+            <h1>상품 수정</h1>
+            <p class="edit-subtitle">등록한 기프트카드 정보를 수정할 수 있습니다.</p>
+
+            <div class="edit-form-row">
+                <label for="editProductName">기프트카드 이름</label>
+                <input id="editProductName" type="text" placeholder="상품명을 입력하세요">
+            </div>
+
+            <div class="edit-form-row">
+                <label for="editOriginalPrice">정가</label>
+                <input id="editOriginalPrice" type="number" placeholder="정가를 입력하세요">
+            </div>
+
+            <div class="edit-form-row">
+                <label for="editSalePrice">판매가</label>
+                <input id="editSalePrice" type="number" placeholder="판매가를 입력하세요">
+            </div>
+
+            <div class="edit-form-row">
+                <label for="editExpiredAt">유효기간</label>
+                <input id="editExpiredAt" type="date">
+            </div>
+
+            <div class="edit-form-row">
+                <label for="editSaleStatus">판매 상태</label>
+                <select id="editSaleStatus">
+                    <option value="SELLING">판매중</option>
+                    <option value="SOLD_OUT">판매완료</option>
+                    <option value="EXPIRED">기간만료</option>
+                </select>
+            </div>
+
+            <div class="edit-form-row">
+                <label for="editDescription">상세 정보</label>
+                <textarea id="editDescription" placeholder="상세 정보를 입력하세요"></textarea>
+            </div>
+
+            <div class="edit-button-area">
+                <button class="edit-cancel-btn" onclick="location.href='./my-products.html'">취소</button>
+                <button class="edit-delete-btn" onclick="deleteProductFromEditPage()">삭제</button>
+                <button class="edit-submit-btn" onclick="submitProductEdit()">수정 완료</button>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<script src="./js/app.js"></script>
+<script src="./js/product-edit.js"></script>
+</body>
+</html>

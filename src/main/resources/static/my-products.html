@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>판매내역 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.href='./index.html'">
+        <span class="logo-icon">🎁</span>
+        <span>기프보따리</span>
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="검색어를 입력하세요">
+        <button>🔍</button>
+    </div>
+
+    <nav class="nav">
+        <button onclick="goRegisterPage()">상품 등록</button>
+        <button onclick="location.href='./chat.html'">채팅</button>
+        <button onclick="logout()">로그아웃</button>
+    </nav>
+</header>
+
+<main class="mypage-wrap">
+
+    <aside class="mypage-sidebar">
+        <div class="mypage-profile">
+            <div class="profile-circle">👤</div>
+            <h3>마이페이지</h3>
+            <p>내가 등록한 상품 관리</p>
+        </div>
+
+        <nav class="mypage-menu">
+            <button onclick="location.href='./mypage.html'">내 정보</button>
+            <button onclick="location.href='./purchases.html'">구매내역</button>
+            <button class="active">판매내역</button>
+            <button onclick="location.href='./chat.html'">채팅목록</button>
+            <button onclick="location.href='./index.html'">메인으로</button>
+        </nav>
+    </aside>
+
+    <section class="mypage-main">
+        <div class="mypage-title-box">
+            <h1>판매내역</h1>
+            <p>내가 등록한 기프트카드의 판매 상태를 확인하고 관리할 수 있습니다.</p>
+        </div>
+
+        <section class="my-product-summary">
+            <div class="summary-card">
+                <span>전체 등록</span>
+                <strong id="totalCount">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>판매중</span>
+                <strong id="sellingCount">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>판매완료</span>
+                <strong id="soldOutCount">0</strong>
+            </div>
+        </section>
+
+        <section class="purchase-filter-box">
+            <button class="filter-btn active" onclick="changeMyProductFilter('ALL', this)">전체</button>
+            <button class="filter-btn" onclick="changeMyProductFilter('SELLING', this)">판매중</button>
+            <button class="filter-btn" onclick="changeMyProductFilter('SOLD_OUT', this)">판매완료</button>
+            <button class="filter-btn" onclick="changeMyProductFilter('EXPIRED', this)">기간만료</button>
+        </section>
+
+        <section id="myProductList" class="my-product-list">
+            <!-- JS에서 판매내역 렌더링 -->
+        </section>
+    </section>
+
+</main>
+
+<!-- 판매 상태 변경 모달 -->
+<div id="statusModal" class="pin-modal-bg hidden">
+    <div class="pin-modal">
+        <button class="pin-modal-close" onclick="closeStatusModal()">×</button>
+
+        <h2>판매 상태 변경</h2>
+        <p id="statusModalProductName" class="modal-product-name">상품명</p>
+
+        <div class="status-select-box">
+            <button onclick="changeSaleStatus('SELLING')">판매중</button>
+            <button onclick="changeSaleStatus('SOLD_OUT')">판매완료</button>
+            <button onclick="changeSaleStatus('EXPIRED')">기간만료</button>
+        </div>
+
+        <div class="modal-warning">
+            판매완료로 변경하면 구매자가 더 이상 해당 상품을 구매할 수 없습니다.
+        </div>
+    </div>
+</div>
+
+<script src="./js/app.js"></script>
+<script src="./js/my-products.js"></script>
+</body>
+</html>

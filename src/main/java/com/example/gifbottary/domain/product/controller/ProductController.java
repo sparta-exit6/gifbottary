@@ -57,6 +57,7 @@ public class ProductController {
     /**
      * 공개 판매글 목록을 조회합니다.
      * 비로그인 사용자도 접근할 수 있으며, 로그인한 경우에만 검색어를 저장합니다.
+     * v1은 캐시 없이 매 요청마다 DB를 조회합니다.
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ProductSummaryResponse>>> findProducts(
@@ -65,7 +66,7 @@ public class ProductController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         searchService.saveSearchKeyword(userId, request);
-        return ResponseEntity.ok(ApiResponse.ok(productService.findProducts(request, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(productService.searchProductsV1(request, pageable)));
     }
 
     /**
