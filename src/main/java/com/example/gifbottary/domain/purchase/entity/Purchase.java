@@ -1,6 +1,7 @@
 package com.example.gifbottary.domain.purchase.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
+import com.example.gifbottary.domain.product.enums.SaleType;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.purchase.enums.PinStatus;
@@ -68,14 +69,18 @@ public class Purchase extends BaseEntity {
         validateQuantity(quantity);
 
         Purchase purchase = new Purchase();
+
         purchase.buyer = buyer;
         purchase.sale = sale;
+
         purchase.quantity = quantity;
         purchase.unitPrice = sale.getSalePrice();
         purchase.totalPrice = quantity * sale.getSalePrice();
+
         purchase.purchaseStatus = PurchaseStatus.PENDING_PAYMENT;
         purchase.pinStatus = PinStatus.MASKED;
         purchase.refundLocked = false;
+
         return purchase;
     }
 
@@ -117,11 +122,10 @@ public class Purchase extends BaseEntity {
      * 결제 완료와 구매 확정을 사실상 함께 처리하는 용도로 사용합니다.
      */
     public void confirmPersonalPurchase() {
-        if (this.purchaseStatus != PurchaseStatus.PENDING_PAYMENT
-                && this.purchaseStatus != PurchaseStatus.PAID) {
-            throw new IllegalStateException("결제 대기 또는 결제 완료 상태에서만 개인 상품 구매 확정이 가능합니다.");
+        if (this.purchaseStatus != PurchaseStatus.PAID) {
+        throw new IllegalStateException("결제 완료 상태에서만 개인 상품 구매 확정이 가능합니다.");
         }
-
+        
         if (this.purchasedAt == null) {
             this.purchasedAt = LocalDateTime.now();
         }
@@ -152,9 +156,6 @@ public class Purchase extends BaseEntity {
         return buyer.getId().equals(userId);
     }
 
-    /**
-     * 구매 확정 상태인지 확인합니다.
-     */
     public boolean isConfirmed() {
         return this.purchaseStatus == PurchaseStatus.CONFIRMED;
     }

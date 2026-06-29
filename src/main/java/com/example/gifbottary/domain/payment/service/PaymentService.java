@@ -1,7 +1,5 @@
 package com.example.gifbottary.domain.payment.service;
 
-import com.example.gifbottary.domain.product.entity.GifticonSale;
-import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,12 +11,13 @@ import com.example.gifbottary.domain.payment.dto.response.PaymentConfirmResponse
 import com.example.gifbottary.domain.payment.dto.response.PaymentCreateResponse;
 import com.example.gifbottary.domain.payment.entity.Payment;
 import com.example.gifbottary.domain.payment.repository.PaymentRepository;
-import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import com.example.gifbottary.domain.purchase.entity.Purchase;
 import com.example.gifbottary.domain.purchase.repository.PurchaseRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.payment.entity.PaymentStatus;
+import com.example.gifbottary.domain.product.entity.GifticonSale;
+import com.example.gifbottary.domain.product.enums.SaleType;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +42,11 @@ public class PaymentService {
 	public PaymentCreateResponse createPayment(PaymentCreateRequest request) {
 		GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
 			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+
+		// 구매 가능 핀 갯수 검증
+		if (sale.countAvailablePins() < request.quantity()) {
+			throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
+		}
 
 		User buyer = entityManager.getReference(User.class, request.buyerId());
 
@@ -72,9 +76,17 @@ public class PaymentService {
 
 		Purchase purchase = payment.getPurchase();
 
+
+		// 결제 확정시 필요
 		payment.complete();
-		//purchase.completePayment();
-		//purchase.getSale().deductStock();
+		purchase.markPaid();
+
+		if (purchase.getSale().getSaleType() == SaleType.PERSONAL) {
+			purchase.confirmPersonalPurchase();
+		}
+
+		// 결제 완료시 재고 차감
+		purchase.getSale().sellPins(purchase.getQuantity());
 
 		return PaymentConfirmResponse.from(payment);
 	}

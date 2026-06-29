@@ -33,7 +33,17 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/signup",
                                 "/api/v1/auth/login",
-                                "/ws/**"
+                                "/ws/**",
+                                "/portone-test.html"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/products",
+                                "/api/v1/products/*",
+                                "/api/v1/search/products",
+                                "/api/v1/search/popular-keywords",
+                                "/api/v2/search/popular-keywords",
+                                "/api/v1/payments/portone"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,

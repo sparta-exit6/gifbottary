@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>PortOne 결제 테스트</title>
+    <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+</head>
+<body>
+<button id="payButton">결제하기</button>
+
+<script>
+    document.getElementById("payButton").addEventListener("click", async () => {
+        const configResponse = await fetch("/api/v1/payments/portone");
+        const configJson = await configResponse.json();
+
+        const { storeId, channelKey } = configJson.data;
+
+        const paymentId = "pay_" + crypto.randomUUID().replaceAll("-", "");
+
+        const response = await PortOne.requestPayment({
+            storeId: storeId,
+            channelKey: channelKey,
+            paymentId: paymentId,
+            orderName: "테스트 기프티콘",
+            totalAmount: 1000,
+            currency: "CURRENCY_KRW",
+            payMethod: "CARD",
+            customer: {
+                fullName: "테스트 구매자",
+                phoneNumber: "01012345678",
+                email: "test@example.com"
+            }
+        });
+
+        console.log(response);
+
+        if (response.code != null) {
+            alert("결제 실패: " + response.message);
+            return;
+        }
+
+        alert("결제 성공 paymentId: " + paymentId);
+    });
+</script>
+</body>
+</html>
