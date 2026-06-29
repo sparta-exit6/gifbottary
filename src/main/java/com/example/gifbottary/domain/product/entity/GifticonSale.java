@@ -185,5 +185,8 @@ public class GifticonSale extends BaseEntity {
 
         availablePins.forEach(GifticonPin::markSold);
         synchronizeStockAndStatus();
+    // 빌드에러로 인해 임시 메서드 만들어 놓겠습니다!
+    public void deductStock() {
+        this.stock -= 1;
     }
 }
