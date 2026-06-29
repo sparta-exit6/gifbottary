@@ -32,6 +32,19 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 	JOIN FETCH s.product
 	WHERE pu.buyer.id = :buyerId
 	ORDER BY p.createdAt DESC
-""")
+	""")
 	List<Payment> findAllByBuyerIdWithProduct(@Param("buyerId") Long buyerId);
+
+	/**
+	 * 결제 상세 조회
+	 */
+	@Query("""
+	SELECT p
+	FROM Payment p
+	JOIN FETCH p.purchase pu
+	JOIN FETCH pu.sale s
+	JOIN FETCH s.product
+	WHERE p.id = :paymentId
+	""")
+	Optional<Payment> findByIdWithProduct(@Param("paymentId") Long paymentId);
 }

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import com.example.gifbottary.domain.payment.dto.request.PaymentCreateRequest;
 import com.example.gifbottary.domain.payment.dto.response.PaymentConfirmResponse;
 import com.example.gifbottary.domain.payment.dto.response.PaymentCreateResponse;
 import com.example.gifbottary.domain.payment.dto.response.PaymentGetListResponse;
+import com.example.gifbottary.domain.payment.dto.response.PaymentGetResponse;
 import com.example.gifbottary.domain.payment.service.PaymentService;
 
 import jakarta.validation.Valid;
@@ -55,5 +57,15 @@ public class PaymentController {
 		@AuthenticationPrincipal(expression = "id") Long buyerId
 	) {
 		return ResponseEntity.ok(ApiResponse.ok(paymentService.getListPayment(buyerId)));
+	}
+
+	//결제 상세 조회
+	@GetMapping("/{paymentId}")
+	public ResponseEntity<ApiResponse<PaymentGetResponse>> getPayment(
+		@PathVariable Long paymentId,
+		@AuthenticationPrincipal(expression = "id") Long buyerId
+	) {
+		PaymentGetResponse response = paymentService.getPayment(paymentId, buyerId);
+		return ResponseEntity.ok(ApiResponse.ok(response));
 	}
 }

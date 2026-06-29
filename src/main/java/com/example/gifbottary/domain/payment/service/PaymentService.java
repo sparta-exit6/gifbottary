@@ -12,6 +12,7 @@ import com.example.gifbottary.domain.payment.dto.request.PaymentCreateRequest;
 import com.example.gifbottary.domain.payment.dto.response.PaymentConfirmResponse;
 import com.example.gifbottary.domain.payment.dto.response.PaymentCreateResponse;
 import com.example.gifbottary.domain.payment.dto.response.PaymentGetListResponse;
+import com.example.gifbottary.domain.payment.dto.response.PaymentGetResponse;
 import com.example.gifbottary.domain.payment.entity.Payment;
 import com.example.gifbottary.domain.payment.repository.PaymentRepository;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
@@ -96,14 +97,26 @@ public class PaymentService {
 
 	/**
 	 * 결제 목록 조회
-	 *
-	 * @return
 	 */
 	public List<PaymentGetListResponse> getListPayment(Long buyerId) {
 		return paymentRepository.findAllByBuyerIdWithProduct(buyerId)
 			.stream()
 			.map(PaymentGetListResponse::from)
 			.toList();
+	}
+
+	/**
+	 * 결제 상세 조회
+	 */
+	public PaymentGetResponse getPayment(Long paymentId, Long buyerId) {
+		Payment payment = paymentRepository.findByIdWithProduct(paymentId)
+			.orElseThrow(() -> new ServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+
+		if (!payment.getPurchase().isOwner(buyerId)) {
+			throw new ServiceException(ErrorCode.PAYMENT_OWNERSHIP_MISMATCH);
+		}
+
+		return PaymentGetResponse.from(payment);
 	}
 
 
