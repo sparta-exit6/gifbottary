@@ -71,7 +71,11 @@ public enum ErrorCode {
     CHATROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHAT_002", "채팅방 접근 권한이 없습니다."),
     CANNOT_CHAT_WITH_SELF(HttpStatus.CONFLICT, "CHAT_003", "본인 상품에는 채팅을 시작할 수 없습니다."),
     INVALID_MESSAGE(HttpStatus.BAD_REQUEST, "CHAT_004", "메시지 형식이 올바르지 않습니다."),
-    ALREADY_EXITED_CHATROOM(HttpStatus.CONFLICT, "CHAT_005", "이미 나간 채팅방입니다.");
+    ALREADY_EXITED_CHATROOM(HttpStatus.CONFLICT, "CHAT_005", "이미 나간 채팅방입니다."),
+
+    COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "COUPON_001", "쿠폰을 찾을 수 없습니다."),
+    COUPON_OUT_OF_STOCK(HttpStatus.CONFLICT, "COUPON_002", "쿠폰이 모두 소진되었습니다."),
+    COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "COUPON_003", "이미 발급받은 쿠폰입니다.");
 
     private final HttpStatus status;
     private final String code;
