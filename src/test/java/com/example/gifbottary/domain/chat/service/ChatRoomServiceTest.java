@@ -22,6 +22,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
+import com.example.gifbottary.domain.product.enums.SaleStatus;
 import com.example.gifbottary.domain.chat.enums.MessageType;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -68,7 +69,7 @@ class ChatRoomServiceTest {
     void getRooms_success() {
         // given
         Long userId = 1L;
-        ChatRoomListResponse roomDto = new ChatRoomListResponse(100L, "상대방", "아메리카노", "마지막 메시지", LocalDateTime.now(), 3L);
+        ChatRoomListResponse roomDto = new ChatRoomListResponse(100L, 2L, "상대방", "아메리카노", 4300, SaleStatus.ON_SALE, "마지막 메시지", LocalDateTime.now(), 3L);
         when(chatRoomRepository.findRoomListByUserId(userId)).thenReturn(List.of(roomDto));
 
         // when
