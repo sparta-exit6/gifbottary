@@ -12,8 +12,10 @@ import com.example.gifbottary.domain.search.repository.SearchKeywordRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -31,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 상품 검색과 연결되는 최근 검색어, 인기 검색어 기능을 담당하는 서비스입니다.
  * 최근 검색어는 DB에 저장하고, 인기 검색어는 Redis ZSet으로 관리하는 서비스입니다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SearchService {
@@ -45,6 +48,7 @@ public class SearchService {
      * 1. 비로그인 사용자는 인기 검색어 집계에서 제외
      * 2. 최근 검색어는 DB에 저장
      * 3. 인기 검색어는 Redis ZSet 점수 증가
+     * 4. Redis 장애가 발생해도 검색 자체는 실패시키지 않고, 인기 검색어 집게만 스킵
      *
      * @param userId
      * @param request
@@ -56,28 +60,23 @@ public class SearchService {
     )
     @Transactional
     public void saveSearchKeyword(Long userId, ProductSearchRequest request) {
-        // 로그인 사용자가 아니거나 요청이 없으면 저장하지 않음
         if (userId == null || request == null) {
             return;
         }
-
-        // keyword가 있으면 keyword를,
-        // 없으면 brand를 대표 검색어로 사용
         String keyword = resolveSearchKeyword(request);
-
-        // 저장할 검색어가 없으면 종료
         if (keyword == null) {
             return;
         }
 
-        // "스타벅스" 와 " 스타벅스 " 를 같은 검색어로 보기 위해 공백 정리
         String normalizedKeyword = normalizeKeyword(keyword);
 
-        // 최근 검색어는 DB에 저장
         saveKeyword(userId, normalizedKeyword);
 
-        // 인기 검색어는 Redis ZSet 점수 증가
-        increasePopularKeywordScore(userId, normalizedKeyword);
+        try {
+            increasePopularKeywordScore(userId, normalizedKeyword);
+        } catch (DataAccessException e) {
+            log.warn("Redis 장애로 인기 검색어 집계를 건너뜁니다. userId={}, keyword={}", userId, normalizedKeyword, e);
+        }
     }
 
     /**
@@ -92,7 +91,7 @@ public class SearchService {
      * Redis 조회 결과를 로컬 캐시에 저장하는 v2 메서드입니다.
      */
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = CacheConfig.POPULAR_KEYWORD_CACHE, key = "'popular:v2:limit:' + #limit")
+    @Cacheable(cacheNames = CacheConfig.POPULAR_KEYWORD_CACHE, key = "'popular:v2:limit:' + #limit", unless = "#result == null || #result.isEmpty()")
     public List<PopularKeywordResponse> findPopularKeywordsV2(int limit) {
         return getPopularKeywords(limit);
     }
@@ -165,21 +164,24 @@ public class SearchService {
     }
 
     private List<PopularKeywordResponse> getPopularKeywords(int limit) {
-        // 잘못된 limit 요청 방지
         if (limit < 1) {
             throw new ServiceException(ErrorCode.INVALID_QUERY_PARAMETER);
         }
 
-        // 점수가 높은 순으로 상위 N개 조회(ZREVRANGE 방식)
-        Set<ZSetOperations.TypedTuple<String>> tuples = stringRedisTemplate.opsForZSet()
-                .reverseRangeWithScores(getDailyPopularKey(), 0, limit - 1);
+        final Set<ZSetOperations.TypedTuple<String>> tuples;
 
-        // 인기 검색어가 없으면 빈 리스트 반환
+        try {
+            tuples = stringRedisTemplate.opsForZSet()
+                    .reverseRangeWithScores(getDailyPopularKey(), 0, limit - 1);
+        }catch (DataAccessException e) {
+            log.warn("Redis 장애로 인기 검색어 조회에 실패했습니다. 빈 리스트를 반환합니다. limit={}", limit, e);
+            return List.of();
+        }
+
         if (tuples == null || tuples.isEmpty()) {
             return List.of();
         }
 
-        // 인기 검색어 응답에 1위부터 순위를 부여하기 위한 카운터
         AtomicInteger rank = new AtomicInteger(1);
         List<PopularKeywordResponse> responses = new ArrayList<>();
 
@@ -265,7 +267,6 @@ public class SearchService {
     private void increasePopularKeywordScore(Long userId, String keyword) {
         String dedupeKey = getDedupeKey(userId, keyword);
 
-        // dedupe key가 이미 있다면 최근에 같은 사용자가 같은 검색어를 검색한 상태
         Boolean exists = stringRedisTemplate.hasKey(dedupeKey);
 
         if (Boolean.TRUE.equals(exists)) {
@@ -274,14 +275,12 @@ public class SearchService {
 
         String dailyPopularKey = getDailyPopularKey();
 
-        // ZSet 점수 1증가
         stringRedisTemplate.opsForZSet().incrementScore(
                 dailyPopularKey,
                 keyword,
                 popularSearchProperties.getScoreIncrement()
         );
 
-        // dedupe key를 TTL과 함께 저장해서 일정 시간 동안 중복 집계 방지
         stringRedisTemplate.opsForValue().set(dedupeKey, "1", Duration.ofMinutes(popularSearchProperties.getDedupeTtlMinutes()));
     }
 }
