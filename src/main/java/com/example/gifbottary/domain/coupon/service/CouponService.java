@@ -24,15 +24,15 @@ public class CouponService {
 
     @Transactional
     public CouponIssueResponse issueCoupon(Long couponId, Long userId) {
+        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.COUPON_NOT_FOUND));
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
 
         if (userCouponRepository.existsByUserIdAndCouponId(userId, couponId)) {
             throw new ServiceException(ErrorCode.COUPON_ALREADY_ISSUED);
         }
-
-        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
-                .orElseThrow(() -> new ServiceException(ErrorCode.COUPON_NOT_FOUND));
 
         coupon.issue();
 
