@@ -85,25 +85,6 @@ public class Purchase extends BaseEntity {
     }
 
     /**
-     * 결제 완료 (상태 변경)
-     */
-    public void completePayment() {
-        this.purchasedAt = LocalDateTime.now();
-
-        if (this.sale.getSaleType() == SaleType.PERSONAL) {
-            this.purchaseStatus = PurchaseStatus.CONFIRMED;
-            this.pinStatus = PinStatus.REVEALED;
-            this.refundLocked = true;
-            this.confirmedAt = LocalDateTime.now();
-            return;
-        }
-
-        this.purchaseStatus = PurchaseStatus.PAID;
-        this.pinStatus = PinStatus.MASKED;
-        this.refundLocked = false;
-    }
-
-    /**
      * 결제 완료 처리입니다.
      *
      * 결제 대기 상태에서만 결제 완료로 전이할 수 있습니다.
@@ -141,11 +122,10 @@ public class Purchase extends BaseEntity {
      * 결제 완료와 구매 확정을 사실상 함께 처리하는 용도로 사용합니다.
      */
     public void confirmPersonalPurchase() {
-        if (this.purchaseStatus != PurchaseStatus.PENDING_PAYMENT
-                && this.purchaseStatus != PurchaseStatus.PAID) {
-            throw new IllegalStateException("결제 대기 또는 결제 완료 상태에서만 개인 상품 구매 확정이 가능합니다.");
+        if (this.purchaseStatus != PurchaseStatus.PAID) {
+        throw new IllegalStateException("결제 완료 상태에서만 개인 상품 구매 확정이 가능합니다.");
         }
-
+        
         if (this.purchasedAt == null) {
             this.purchasedAt = LocalDateTime.now();
         }
@@ -174,33 +154,6 @@ public class Purchase extends BaseEntity {
      */
     public boolean isOwner(Long userId) {
         return buyer.getId().equals(userId);
-    }
-
-    /**
-     * 구매 확정 상태인지 확인합니다.
-     */
-    public static Purchase createPlatformPurchase(User buyer, GifticonSale sale) {
-        Purchase purchase = new Purchase();
-        purchase.buyer = buyer;
-        purchase.sale = sale;
-        purchase.purchaseStatus = PurchaseStatus.PAID;
-        purchase.purchasedAt = LocalDateTime.now();
-        return purchase;
-    }
-
-    /**
-     * 중고 상품 구매확정(즉시)
-     */
-    public static Purchase createPersonalPurchase(User buyer, GifticonSale sale) {
-        Purchase purchase = new Purchase();
-        purchase.buyer = buyer;
-        purchase.sale = sale;
-        purchase.purchaseStatus = PurchaseStatus.CONFIRMED;
-        purchase.pinStatus = PinStatus.REVEALED;
-        purchase.refundLocked = true;
-        purchase.purchasedAt = LocalDateTime.now();
-        purchase.confirmedAt = LocalDateTime.now();
-        return purchase;
     }
 
     public boolean isConfirmed() {
