@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<div class="signup-page">
+
+    <div class="signup-container">
+
+        <!-- 1단계: 정보 입력 -->
+        <section id="signupFormSection" class="signup-box">
+
+            <div class="signup-brand">
+                <div class="brand-logo-box">🎁</div>
+                <h1>기프보따리</h1>
+                <p>기프트 & 모바일쿠폰</p>
+            </div>
+
+            <div class="signup-form-area">
+                <h2>회원가입</h2>
+
+                <div class="form-row">
+                    <label for="signupEmail">이메일</label>
+                    <input id="signupEmail" type="email" placeholder="이메일을 입력하세요">
+                </div>
+
+                <div class="form-row">
+                    <label for="signupPassword">비밀번호</label>
+                    <input id="signupPassword" type="password" placeholder="비밀번호를 입력하세요">
+                </div>
+
+                <div class="form-row">
+                    <label for="signupPasswordCheck">비밀번호 확인</label>
+                    <input id="signupPasswordCheck" type="password" placeholder="비밀번호를 다시 입력하세요">
+                </div>
+
+                <div class="form-row">
+                    <label for="signupName">이름</label>
+                    <input id="signupName" type="text" placeholder="이름을 입력하세요">
+                </div>
+
+                <label class="terms-check">
+                    <input id="termsAgree" type="checkbox">
+                    약관동의
+                </label>
+
+                <button class="signup-submit-btn" onclick="signup()">다음</button>
+
+                <p class="login-guide">
+                    이미 계정이 있으신가요?
+                    <a href="./login.html">로그인</a>
+                </p>
+            </div>
+        </section>
+
+        <!-- 2단계: 회원가입 완료 -->
+        <section id="signupCompleteSection" class="signup-complete-box hidden">
+
+            <div class="complete-icon">✓</div>
+
+            <h2>회원가입이 완료되었습니다.</h2>
+            <p>기프보따리의 다양한 기프트카드를 만나보세요.</p>
+
+            <button onclick="location.href='./login.html'">로그인 하기</button>
+            <button class="home-btn" onclick="location.href='./index.html'">메인으로</button>
+        </section>
+
+    </div>
+
+</div>
+
+<script src="./js/app.js"></script>
+</body>
+</html>
