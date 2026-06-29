@@ -18,8 +18,11 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
+import com.example.gifbottary.domain.chat.enums.MessageType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +49,12 @@ class ChatRoomServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ChatMessageService chatMessageService;
+
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     @Captor
     private ArgumentCaptor<List<ChatMember>> chatMemberListCaptor;
@@ -142,5 +151,32 @@ class ChatRoomServiceTest {
         verify(chatRoomRepository).findBySaleIdAndBuyerId(saleId, buyerId);
         verify(chatRoomRepository, never()).save(any(ChatRoom.class));
         verify(chatMemberRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("채팅방 퇴장 성공 - DB에서 멤버가 삭제되고 정확한 퇴장 알림 DTO가 실시간 브로드캐스트된다")
+    void leaveRoom_success() {
+        // given
+        Long roomId = 100L;
+        Long userId = 2L;
+        User user = mock(User.class);
+        when(user.getName()).thenReturn("구매자");
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        ChatMember member = mock(ChatMember.class);
+        when(chatMemberRepository.findByChatRoomIdAndUserId(roomId, userId)).thenReturn(Optional.of(member));
+
+        String expectedLeaveMsg = String.format(ChatRoomService.LEAVE_MESSAGE_FORMAT, "구매자");
+        ChatMessageResponse expectedResponse = new ChatMessageResponse(
+                500L, userId, "구매자", expectedLeaveMsg, MessageType.SYSTEM, LocalDateTime.now());
+        when(chatMessageService.saveSystemMessage(roomId, userId, expectedLeaveMsg))
+                .thenReturn(expectedResponse);
+
+        // when
+        chatRoomService.leaveRoom(roomId, userId);
+
+        // then
+        verify(chatMemberRepository).delete(member);
+        verify(messagingTemplate).convertAndSend(eq("/sub/chat/" + roomId), eq(expectedResponse));
     }
 }

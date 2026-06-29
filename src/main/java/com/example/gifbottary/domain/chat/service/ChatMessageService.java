@@ -4,6 +4,7 @@ import com.example.gifbottary.domain.chat.dto.request.ChatMessageSendRequest;
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.entity.ChatMessage;
 import com.example.gifbottary.domain.chat.entity.ChatRoom;
+import com.example.gifbottary.domain.chat.enums.MessageType;
 import com.example.gifbottary.domain.chat.repository.ChatMessageRepository;
 import com.example.gifbottary.domain.chat.repository.ChatRoomRepository;
 import com.example.gifbottary.domain.user.entity.User;
@@ -28,14 +29,14 @@ public class ChatMessageService {
     private final UserRepository userRepository;
 
     @Transactional
-    public ChatMessageResponse saveMessage(ChatMessageSendRequest request) {
+    public ChatMessageResponse saveMessage(Long senderId, ChatMessageSendRequest request) {
         ChatRoom chatRoom = chatRoomRepository.findById(request.roomId())
                 .orElseThrow();
 
-        User sender = userRepository.findById(request.senderId())
+        User sender = userRepository.findById(senderId)
                 .orElseThrow();
 
-        ChatMessage message = new ChatMessage(chatRoom, sender, request.content());
+        ChatMessage message = new ChatMessage(chatRoom, sender, request.content(), MessageType.TALK);
         ChatMessage savedMessage = chatMessageRepository.save(message);
 
         chatRoom.updateLastMessageAt(LocalDateTime.now());
@@ -43,10 +44,32 @@ public class ChatMessageService {
         return ChatMessageResponse.from(savedMessage);
     }
 
+    @Transactional
+    public ChatMessageResponse saveSystemMessage(Long roomId, Long userId, String content) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow();
+
+        User sender = userRepository.findById(userId)
+                .orElseThrow();
+
+        ChatMessage message = new ChatMessage(chatRoom, sender, content, MessageType.SYSTEM);
+        ChatMessage savedMessage = chatMessageRepository.save(message);
+
+        return ChatMessageResponse.from(savedMessage);
+    }
+
     public List<ChatMessageResponse> getMessages(Long roomId, Long lastMessageId, int size) {
         Pageable pageable = PageRequest.of(0, size);
         List<ChatMessage> messages = chatMessageRepository.findMessages(roomId, lastMessageId, pageable);
-        
+
+        return messages.stream()
+                .map(ChatMessageResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    public List<ChatMessageResponse> getMissedMessages(Long roomId, Long lastMessageId) {
+        List<ChatMessage> messages = chatMessageRepository.findMissedMessages(roomId, lastMessageId);
+
         return messages.stream()
                 .map(ChatMessageResponse::from)
                 .collect(Collectors.toList());

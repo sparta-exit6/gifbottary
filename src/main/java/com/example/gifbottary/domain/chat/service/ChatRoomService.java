@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.chat.service;
 import com.example.gifbottary.common.exception.ErrorCode;
 import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.domain.chat.dto.request.ChatRoomCreateRequest;
+import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.gifbottary.domain.chat.entity.ChatMember;
@@ -14,6 +15,7 @@ import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,10 +27,15 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class ChatRoomService {
 
+    public static final String ENTER_MESSAGE_FORMAT = "%s님이 입장했습니다.";
+    public static final String LEAVE_MESSAGE_FORMAT = "%s님이 채팅방을 나갔습니다.";
+
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMemberRepository chatMemberRepository;
     private final GifticonSaleRepository gifticonSaleRepository;
     private final UserRepository userRepository;
+    private final ChatMessageService chatMessageService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public List<ChatRoomListResponse> getRooms(Long userId) {
         return chatRoomRepository.findRoomListByUserId(userId);
@@ -62,6 +69,25 @@ public class ChatRoomService {
         ChatMember sellerMember = new ChatMember(savedRoom, sale.getSeller());
         chatMemberRepository.saveAll(List.of(buyerMember, sellerMember));
 
+        // 5. 최초 개설 시스템 메시지 DB 각인 (소켓 연결 시 도배 방지용 정석 위치)
+        String enterMsg = String.format(ENTER_MESSAGE_FORMAT, buyer.getName());
+        chatMessageService.saveSystemMessage(savedRoom.getId(), buyer.getId(), enterMsg);
+
         return new ChatRoomCreateResponse(savedRoom.getId());
+    }
+
+    @Transactional
+    public void leaveRoom(Long roomId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
+
+        ChatMember member = chatMemberRepository.findByChatRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.ALREADY_EXITED_CHATROOM));
+
+        chatMemberRepository.delete(member);
+
+        String leaveMsg = String.format(LEAVE_MESSAGE_FORMAT, user.getName());
+        ChatMessageResponse response = chatMessageService.saveSystemMessage(roomId, userId, leaveMsg);
+        messagingTemplate.convertAndSend("/sub/chat/" + roomId, response);
     }
 }

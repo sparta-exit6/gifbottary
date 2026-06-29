@@ -1,6 +1,7 @@
 package com.example.gifbottary.domain.chat.dto.response;
 
 import com.example.gifbottary.domain.chat.entity.ChatMessage;
+import com.example.gifbottary.domain.chat.enums.MessageType;
 
 import java.time.LocalDateTime;
 
@@ -9,6 +10,7 @@ public record ChatMessageResponse(
     Long senderId,
     String senderName,
     String content,
+    MessageType messageType,
     LocalDateTime createdAt
 ) {
     public static ChatMessageResponse from(ChatMessage message) {
@@ -17,6 +19,7 @@ public record ChatMessageResponse(
             message.getSender().getId(),
             message.getSender().getName(),
             message.getContent(),
+            message.getMessageType(),
             message.getCreatedAt()
         );
     }

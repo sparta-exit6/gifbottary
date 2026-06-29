@@ -7,10 +7,12 @@ import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.gifbottary.domain.chat.service.ChatMessageService;
 import com.example.gifbottary.domain.chat.service.ChatRoomService;
+import com.example.gifbottary.domain.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,6 +41,24 @@ public class ChatRoomController {
     ) {
         List<ChatMessageResponse> messages = chatMessageService.getMessages(roomId, lastMessageId, size);
         return ResponseEntity.ok(ApiResponse.ok(messages));
+    }
+
+    @GetMapping("/{roomId}/messages/missed")
+    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getMissedMessages(
+            @PathVariable Long roomId,
+            @RequestParam(value = "lastMessageId", required = false) Long lastMessageId
+    ) {
+        List<ChatMessageResponse> messages = chatMessageService.getMissedMessages(roomId, lastMessageId);
+        return ResponseEntity.ok(ApiResponse.ok(messages));
+    }
+
+    @DeleteMapping("/{roomId}/members")
+    public ResponseEntity<ApiResponse<Void>> leaveRoom(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal User user
+            ) {
+        chatRoomService.leaveRoom(roomId, user.getId());
+        return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     @PostMapping
