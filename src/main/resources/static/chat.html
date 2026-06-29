@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>상품 상세 | 기프보따리</title>
+    <title>채팅 | 기프보따리</title>
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -19,49 +19,91 @@
     </div>
 
     <nav class="nav">
-        <button onclick="goRegisterPage()">상품 등록</button>
+        <button onclick="location.href='./index.html'">메인</button>
         <button onclick="location.href='./mypage.html'">마이페이지</button>
     </nav>
 </header>
 
-<main class="detail-page">
-    <section class="detail-container">
+<main class="chat-page">
 
-        <div class="detail-image bg-starbucks">
-            STARBUCKS
-        </div>
+    <section class="chat-container">
 
-        <div class="detail-info">
-            <span class="sale-badge">개인 판매</span>
-            <h1>스타벅스 아메리카노 Tall</h1>
+        <aside class="chat-left-panel">
 
-            <p class="detail-origin-price">정가 5,000원</p>
-            <p class="detail-sale-price">판매가 4,300원</p>
+            <div class="chat-product-box">
+                <h3>거래 상품</h3>
 
-            <div class="detail-meta">
-                <p><strong>판매자</strong> 김민혁</p>
-                <p><strong>상품 상태</strong> 판매중</p>
-                <p><strong>유효기간</strong> 2026.07.30</p>
+                <div class="chat-product-image bg-starbucks">
+                    STARBUCKS
+                </div>
+
+                <h4>스타벅스 아메리카노 Tall</h4>
+                <p>판매가 4,300원</p>
+                <span class="status-selling">판매중</span>
+
+                <button onclick="location.href='./product-detail.html'">상품 보기</button>
+                <button class="buy-small-btn">구매하기</button>
             </div>
 
-            <div class="detail-description">
-                스타벅스 아메리카노 Tall 기프티콘입니다.
-                구매 전 문의가 필요하면 아래 문의하기 버튼을 눌러주세요.
+            <div class="chat-list-box">
+                <h3>채팅 목록</h3>
+
+                <div id="chatRoomList" class="chat-room-list">
+                    <div class="chat-room-item active">
+                        <div class="chat-avatar">김</div>
+                        <div>
+                            <strong>홍길동</strong>
+                            <p>안녕하세요~</p>
+                        </div>
+                        <span class="unread-count">1</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="detail-actions">
-                <button class="chat-start-btn" onclick="createChatRoom(1)">
-                    💬 문의하기
-                </button>
-                <button class="buy-btn">
-                    바로 구매
-                </button>
+            <button class="leave-chat-btn" onclick="leaveChatRoom()">채팅방 나가기</button>
+        </aside>
+
+        <section class="chat-main-panel">
+
+            <div class="chat-top">
+                <div class="chat-user-info">
+                    <div class="chat-avatar large">홍</div>
+                    <div>
+                        <h3>판매자 홍길동</h3>
+                        <p>● 온라인</p>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <div id="messageList" class="chat-message-list">
+                <div class="message-row me">
+                    <div class="message-bubble">안녕하세요! 혹시 지금 상품 판매중인가요?</div>
+                    <span class="message-time">14:30</span>
+                </div>
+
+                <div class="message-row other">
+                    <div class="chat-avatar">홍</div>
+                    <div>
+                        <div class="message-bubble">안녕하세요~ 네 가능합니다!</div>
+                        <span class="message-time">14:31</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <input id="messageInput" type="text" placeholder="메시지를 입력하세요..."
+                       onkeydown="handleMessageEnter(event)">
+                <button onclick="sendMessage()">전송</button>
+            </div>
+
+        </section>
 
     </section>
+
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
 <script src="./js/chat.js"></script>
 </body>
 </html>
