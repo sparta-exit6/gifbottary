@@ -546,9 +546,9 @@ spring:
 ### 성능 비교표 예시
 
 | 구분 | API | 1차 호출 | 2차 호출 | 3차 호출 | 검색 SQL 실행 여부 | 비고 |
-| :--- | :--- |:------| :--- | :--- | :--- | :--- |
-| v1 | `/api/v1/products?keyword=스타벅스&page=0&size=10` | 작성예정  | 작성예정 | 작성예정 | 매번 실행 | 캐시 미적용 |
-| v2 | `/api/v2/products?keyword=스타벅스&page=0&size=10` | 작성예정  | 작성예정 | 작성예정 | 1차만 실행 | 이후 cache hit |
+| :--- | :--- |:------|:------|:------| :--- | :--- |
+| v1 | `/api/v1/products?keyword=스타벅스&page=0&size=10` | 412ms | 29ms  | 28ms  | 매번 실행 | 캐시 미적용 |
+| v2 | `/api/v2/products?keyword=스타벅스&page=0&size=10` | 745ms | 19ms  | 20ms  | 1차만 실행 | 이후 cache hit |
 
 ### 해석
 - `v1`은 같은 요청을 반복해도 매번 DB 검색 SQL과 count 쿼리가 실행됩니다.
