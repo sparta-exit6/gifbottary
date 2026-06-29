@@ -17,6 +17,7 @@ import com.example.gifbottary.domain.purchase.repository.PurchaseRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.payment.entity.PaymentStatus;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
+import com.example.gifbottary.domain.product.enums.SaleType;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -78,7 +79,10 @@ public class PaymentService {
 
 		// 결제 확정시 필요
 		payment.complete();
-		purchase.completePayment();
+		purchase.markPaid();
+
+		if (purchase.getSale().getSaleType() == SaleType.PERSONAL) {
+			purchase.confirmPersonalPurchase();
 
 		// 결제 완료시 재고 차감
 		purchase.getSale().sellPins(purchase.getQuantity());
