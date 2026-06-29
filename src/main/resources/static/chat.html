@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 상세 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.href='./index.html'">
+        <span class="logo-icon">🎁</span>
+        <span>기프보따리</span>
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="검색어를 입력하세요">
+        <button>🔍</button>
+    </div>
+
+    <nav class="nav">
+        <button onclick="goRegisterPage()">상품 등록</button>
+        <button onclick="location.href='./mypage.html'">마이페이지</button>
+    </nav>
+</header>
+
+<main class="detail-page">
+    <section class="detail-container">
+
+        <div class="detail-image bg-starbucks">
+            STARBUCKS
+        </div>
+
+        <div class="detail-info">
+            <span class="sale-badge">개인 판매</span>
+            <h1>스타벅스 아메리카노 Tall</h1>
+
+            <p class="detail-origin-price">정가 5,000원</p>
+            <p class="detail-sale-price">판매가 4,300원</p>
+
+            <div class="detail-meta">
+                <p><strong>판매자</strong> 김민혁</p>
+                <p><strong>상품 상태</strong> 판매중</p>
+                <p><strong>유효기간</strong> 2026.07.30</p>
+            </div>
+
+            <div class="detail-description">
+                스타벅스 아메리카노 Tall 기프티콘입니다.
+                구매 전 문의가 필요하면 아래 문의하기 버튼을 눌러주세요.
+            </div>
+
+            <div class="detail-actions">
+                <button class="chat-start-btn" onclick="createChatRoom(1)">
+                    💬 문의하기
+                </button>
+                <button class="buy-btn">
+                    바로 구매
+                </button>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<script src="./js/chat.js"></script>
+</body>
+</html>
