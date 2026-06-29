@@ -83,6 +83,7 @@ public class PaymentService {
 
 		if (purchase.getSale().getSaleType() == SaleType.PERSONAL) {
 			purchase.confirmPersonalPurchase();
+		}
 
 		// 결제 완료시 재고 차감
 		purchase.getSale().sellPins(purchase.getQuantity());
