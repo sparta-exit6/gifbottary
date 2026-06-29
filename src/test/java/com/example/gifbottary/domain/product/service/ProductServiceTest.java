@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
@@ -67,7 +68,7 @@ class ProductServiceTest {
         });
         given(pinEncryptor.hash("1111-2222-3333")).willReturn("pin-hash");
         given(pinEncryptor.encrypt("1111-2222-3333")).willReturn("encrypted-pin");
-        given(gifticonSaleRepository.save(any(GifticonSale.class))).willAnswer(invocation -> {
+        given(gifticonSaleRepository.saveAndFlush(any(GifticonSale.class))).willAnswer(invocation -> {
             GifticonSale sale = invocation.getArgument(0);
             ReflectionTestUtils.setField(sale, "id", 1001L);
             return sale;
@@ -93,7 +94,7 @@ class ProductServiceTest {
         assertThat(response.saleType()).isEqualTo("PERSONAL");
         assertThat(response.saleStatus()).isEqualTo("PENDING_REVIEW");
         verify(gifticonProductRepository).save(any(GifticonProduct.class));
-        verify(gifticonSaleRepository).save(any(GifticonSale.class));
+        verify(gifticonSaleRepository).saveAndFlush(any(GifticonSale.class));
     }
 
     @Test
@@ -107,7 +108,7 @@ class ProductServiceTest {
         given(gifticonProductRepository.findById(101L)).willReturn(Optional.of(existingProduct));
         given(pinEncryptor.hash("1111-2222-3333")).willReturn("pin-hash");
         given(pinEncryptor.encrypt("1111-2222-3333")).willReturn("encrypted-pin");
-        given(gifticonSaleRepository.save(any(GifticonSale.class))).willAnswer(invocation -> {
+        given(gifticonSaleRepository.saveAndFlush(any(GifticonSale.class))).willAnswer(invocation -> {
             GifticonSale sale = invocation.getArgument(0);
             ReflectionTestUtils.setField(sale, "id", 1002L);
             return sale;
@@ -180,7 +181,7 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("유효기간이 과거면 판매 등록에 실패한다")
+    @DisplayName("유효기간이 과거면 판매 등록이 실패한다")
     void createProduct_withPastExpireAt_throwsException() {
         User seller = createUser(1L, Role.USER);
         given(userRepository.findById(1L)).willReturn(Optional.of(seller));
@@ -278,7 +279,41 @@ class ProductServiceTest {
 
         assertThatThrownBy(() -> productService.createProduct(1L, request))
                 .isInstanceOf(ServiceException.class)
-                .hasMessage("이미 사용된 핀번호입니다.");
+                .hasMessage("이미 사용된 핀번호이거나 중복된 핀번호입니다.");
+    }
+
+    @Test
+    @DisplayName("저장 시점에 핀 해시 unique 제약이 터지면 비즈니스 예외로 변환한다")
+    void createProduct_whenPinHashUniqueConstraintFails_throwsBusinessException() {
+        User seller = createUser(1L, Role.USER);
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(seller));
+        given(gifticonProductRepository.findByBrandAndProductName("스타벅스", "아메리카노 T"))
+                .willReturn(Optional.empty());
+        given(gifticonProductRepository.save(any(GifticonProduct.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+        given(pinEncryptor.hash("1111-2222-3333")).willReturn("pin-hash");
+        given(pinEncryptor.encrypt("1111-2222-3333")).willReturn("encrypted-pin");
+        given(gifticonPinRepository.existsByPinHash("pin-hash")).willReturn(false);
+        given(gifticonSaleRepository.saveAndFlush(any(GifticonSale.class)))
+                .willThrow(new DataIntegrityViolationException("Duplicate entry for pin_hash"));
+
+        ProductCreateRequest request = new ProductCreateRequest(
+                null,
+                SaleType.PERSONAL,
+                "스타벅스",
+                "아메리카노 T",
+                4500,
+                LocalDate.now().plusDays(10),
+                4000,
+                "1111-2222-3333",
+                null,
+                null
+        );
+
+        assertThatThrownBy(() -> productService.createProduct(1L, request))
+                .isInstanceOf(ServiceException.class)
+                .hasMessage("이미 사용된 핀번호이거나 중복된 핀번호입니다.");
     }
 
     private User createUser(Long id, Role role) {
