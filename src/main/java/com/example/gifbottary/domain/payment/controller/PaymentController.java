@@ -34,11 +34,11 @@ public class PaymentController {
 
 	//결제 생성
 	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<ApiResponse<PaymentCreateResponse>> createPayment(
+		@AuthenticationPrincipal(expression = "id") Long buyerId,
 		@Valid @RequestBody PaymentCreateRequest request
 	) {
-		PaymentCreateResponse response = paymentService.createPayment(request);
+		PaymentCreateResponse response = paymentService.createPayment(buyerId, request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
 	}
 

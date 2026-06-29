@@ -43,16 +43,11 @@ public class PaymentService {
 	 * @return 생성된 결제 정보
 	 */
 	@Transactional
-	public PaymentCreateResponse createPayment(PaymentCreateRequest request) {
+	public PaymentCreateResponse createPayment(Long buyerId, PaymentCreateRequest request) {
+		User buyer = entityManager.getReference(User.class, buyerId);
+
 		GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
 			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
-
-		// 구매 가능 핀 갯수 검증
-		if (sale.countAvailablePins() < request.quantity()) {
-			throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
-		}
-
-		User buyer = entityManager.getReference(User.class, request.buyerId());
 
 		Purchase purchase = Purchase.create(buyer, sale, request.quantity());
 		Purchase savedPurchase = purchaseRepository.save(purchase);

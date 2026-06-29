@@ -8,7 +8,7 @@
 <body>
 
 <header class="header">
-    <div class="logo" onclick="location.href='/index.html'">
+    <div class="logo" onclick="location.href='./index.html'">
         <span class="logo-icon">🎁</span>
         <span>기프보따리</span>
     </div>
@@ -24,6 +24,7 @@
         <button onclick="location.href='./signup.html'">회원가입</button>
         <button onclick="location.href='./login.html'">로그인</button>
         <button class="profile-btn" onclick="location.href='./mypage.html'">👤</button>
+        <button onclick="logout()">로그아웃</button>
     </nav>
 </header>
 
@@ -53,13 +54,11 @@
 
     <section class="product-section">
         <h2>개인 판매 기프트카드</h2>
-
         <div class="product-grid" id="personalProductList"></div>
     </section>
 
     <section class="product-section">
         <h2>관리자 판매 기프트카드</h2>
-
         <div class="product-grid" id="adminProductList"></div>
     </section>
 

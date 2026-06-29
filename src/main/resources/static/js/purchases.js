@@ -4,8 +4,9 @@ let selectedPurchase = null;
 let selectedRefundPurchase = null;
 
 const PURCHASE_API = {
-    list: "/api/v1/purchases",
-    confirm: (purchaseId) => `/api/v1/purchases/${purchaseId}/confirm`,
+    list: "/api/v1/purchases/me",
+    detail: (purchaseId) => `/api/v1/purchases/${purchaseId}`,
+    revealPin: (purchaseId) => `/api/v1/purchases/${purchaseId}/reveal-pin`,
     refund: "/api/v1/refunds"
 };
 
@@ -41,7 +42,7 @@ async function loadPurchases() {
             return;
         }
 
-        allPurchases = normalizePurchases(result.data);
+        allPurchases = normalizePurchases(result.data).map(normalizePurchase);
         renderPurchases();
 
     } catch (error) {
@@ -70,6 +71,24 @@ function normalizePurchases(data) {
     }
 
     return [];
+}
+
+function normalizePurchase(purchase) {
+    const saleType = purchase.saleType || purchase.purchaseType;
+    const pinStatus = purchase.pinStatus;
+    const totalAmount = purchase.totalAmount ?? purchase.totalPrice ?? 0;
+
+    return {
+        ...purchase,
+        purchaseType: saleType,
+        totalAmount: totalAmount,
+        pointAmount: purchase.pointAmount ?? 0,
+        cardAmount: purchase.cardAmount ?? totalAmount,
+        paymentStatus: purchase.paymentStatus || "COMPLETED",
+        pinOpened: purchase.pinOpened ?? pinStatus === "REVEALED",
+        imageText: purchase.imageText || purchase.brand || "GIFT CARD",
+        bgClass: purchase.bgClass || getPurchaseBgClass(purchase.brand)
+    };
 }
 
 function renderSamplePurchases() {
@@ -228,12 +247,37 @@ function changePurchaseFilter(filter, button) {
     renderPurchases();
 }
 
-function openPinModal(purchaseId) {
+async function openPinModal(purchaseId) {
     selectedPurchase = allPurchases.find(purchase => Number(purchase.purchaseId) === Number(purchaseId));
 
     if (!selectedPurchase) {
         alert("구매내역을 찾을 수 없습니다.");
         return;
+    }
+
+    try {
+        const token = getToken();
+        const response = await fetch(PURCHASE_API.detail(purchaseId), {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const result = await response.json().catch(() => null);
+
+        if (response.ok && result?.success !== false && result?.data) {
+            selectedPurchase = normalizePurchase({
+                ...selectedPurchase,
+                ...result.data
+            });
+
+            allPurchases = allPurchases.map(purchase =>
+                Number(purchase.purchaseId) === Number(purchaseId) ? selectedPurchase : purchase
+            );
+        }
+    } catch (error) {
+        console.error(error);
     }
 
     document.getElementById("modalProductName").textContent =
@@ -265,13 +309,18 @@ function closePinModal() {
     selectedPurchase = null;
 }
 
-function revealPinNumber() {
+async function revealPinNumber() {
     if (!selectedPurchase) {
         return;
     }
 
+    if (selectedPurchase.purchaseType === "PLATFORM" && !selectedPurchase.pinOpened) {
+        await confirmPurchase();
+        return;
+    }
+
     document.getElementById("modalPinNumber").textContent =
-        selectedPurchase.pinNumber || "1234-5678-9012-3456";
+        selectedPurchase.pinNumber || "확인된 핀번호";
 
     selectedPurchase.pinOpened = true;
     renderPurchases();
@@ -289,8 +338,8 @@ async function confirmPurchase() {
     const token = getToken();
 
     try {
-        const response = await fetch(PURCHASE_API.confirm(selectedPurchase.purchaseId), {
-            method: "PATCH",
+        const response = await fetch(PURCHASE_API.revealPin(selectedPurchase.purchaseId), {
+            method: "POST",
             headers: {
                 "Authorization": `Bearer ${token}`
             }
@@ -303,8 +352,14 @@ async function confirmPurchase() {
             return;
         }
 
-        selectedPurchase.purchaseStatus = "CONFIRMED";
-        selectedPurchase.pinOpened = true;
+        selectedPurchase = normalizePurchase({
+            ...selectedPurchase,
+            ...result.data
+        });
+
+        allPurchases = allPurchases.map(purchase =>
+            Number(purchase.purchaseId) === Number(selectedPurchase.purchaseId) ? selectedPurchase : purchase
+        );
 
         document.getElementById("modalPinNumber").textContent =
             selectedPurchase.pinNumber || "확인된 핀번호";
@@ -405,6 +460,32 @@ function formatDate(value) {
 
 function formatNumber(value) {
     return Number(value || 0).toLocaleString("ko-KR");
+}
+
+function getPurchaseBgClass(brand) {
+    const normalizedBrand = String(brand || "").toLowerCase();
+
+    if (normalizedBrand.includes("starbucks") || normalizedBrand.includes("스타벅스")) {
+        return "bg-starbucks";
+    }
+
+    if (normalizedBrand.includes("bhc")) {
+        return "bg-bhc";
+    }
+
+    if (normalizedBrand.includes("olive") || normalizedBrand.includes("올리브")) {
+        return "bg-olive";
+    }
+
+    if (normalizedBrand.includes("cu")) {
+        return "bg-cu";
+    }
+
+    if (normalizedBrand.includes("mega") || normalizedBrand.includes("메가박스")) {
+        return "bg-megabox";
+    }
+
+    return "bg-money";
 }
 
 function escapeHtml(value) {
