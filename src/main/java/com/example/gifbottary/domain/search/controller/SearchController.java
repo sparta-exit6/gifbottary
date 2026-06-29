@@ -3,16 +3,10 @@ package com.example.gifbottary.domain.search.controller;
 import com.example.gifbottary.common.exception.ErrorCode;
 import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.common.response.ApiResponse;
-import com.example.gifbottary.domain.product.dto.request.ProductSearchRequest;
-import com.example.gifbottary.domain.product.dto.response.ProductSummaryResponse;
-import com.example.gifbottary.domain.product.enums.SaleType;
-import com.example.gifbottary.domain.product.service.ProductService;
 import com.example.gifbottary.domain.search.dto.response.PopularKeywordResponse;
 import com.example.gifbottary.domain.search.dto.response.RecentKeywordResponse;
 import com.example.gifbottary.domain.search.service.SearchService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -25,30 +19,10 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v1/search")
+@RequiredArgsConstructor
 public class SearchController {
 
     private final SearchService searchService;
-    private final ProductService productService;
-
-    public SearchController(SearchService searchService, ProductService productService) {
-        this.searchService = searchService;
-        this.productService = productService;
-    }
-
-    @GetMapping("/products")
-    public ResponseEntity<ApiResponse<Page<ProductSummaryResponse>>> searchProducts(
-            @AuthenticationPrincipal(expression = "id") Long userId,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) SaleType saleType,
-            @RequestParam(required = false) Integer minPrice,
-            @RequestParam(required = false) Integer maxPrice,
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
-        ProductSearchRequest request = new ProductSearchRequest(keyword, brand, saleType, null, minPrice, maxPrice);
-        searchService.saveSearchKeyword(userId, request);
-        return ResponseEntity.ok(ApiResponse.ok(productService.findProducts(request, pageable)));
-    }
 
     @GetMapping("/popular-keywords")
     public ResponseEntity<ApiResponse<List<PopularKeywordResponse>>> findPopularKeywords(

@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.search.controller;
 import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.search.dto.response.PopularKeywordResponse;
 import com.example.gifbottary.domain.search.service.SearchService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,14 +18,17 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v2/search")
+@RequiredArgsConstructor
 public class SearchV2Controller {
 
     private final SearchService searchService;
 
-    public SearchV2Controller(SearchService searchService) {
-        this.searchService = searchService;
-    }
 
+    /**
+     *
+     * @param limit 인기 검색어 상위 10개 조회
+     * @return
+     */
     @GetMapping("/popular-keywords")
     public ResponseEntity<ApiResponse<List<PopularKeywordResponse>>> findPopularKeywords(
             @RequestParam(defaultValue = "10") int limit

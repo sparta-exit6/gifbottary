@@ -1,5 +1,6 @@
 package com.example.gifbottary.domain.product.service;
 
+import com.example.gifbottary.common.config.CacheConfig;
 import com.example.gifbottary.common.exception.ErrorCode;
 import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.common.util.PinEncryptor;
@@ -15,11 +16,12 @@ import com.example.gifbottary.domain.product.enums.SaleType;
 import com.example.gifbottary.domain.product.repository.GifticonPinRepository;
 import com.example.gifbottary.domain.product.repository.GifticonProductRepository;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
-import com.example.gifbottary.domain.product.repository.GifticonSaleSpecification;
 import com.example.gifbottary.domain.user.entity.Role;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,13 +45,21 @@ public class ProductService {
     private final UserRepository userRepository;
     private final PinEncryptor pinEncryptor;
 
+    @CacheEvict(cacheNames = "productSearchV2", allEntries = true)
     @Transactional
     public ProductCreateResponse createProduct(Long sellerId, ProductCreateRequest request) {
         User seller = findUser(sellerId);
         validateCreateRequest(request, seller);
         GifticonProduct product = resolveProduct(request);
 
-        GifticonSale sale = new GifticonSale(seller, product, request.saleType(), request.salePrice(), request.expireAt());
+        GifticonSale sale = new GifticonSale(
+                seller,
+                product,
+                request.saleType(),
+                request.salePrice(),
+                request.expireAt()
+        );
+
         appendPins(sale, extractPinNumbers(request.pinNumber(), request.pinNumbers()), request.saleType());
         sale.synchronizeStockAndStatus();
 
@@ -62,15 +72,39 @@ public class ProductService {
         return toDetailResponse(findSale(saleId));
     }
 
+    /**
+     * v1 상품 검색 API
+     */
     @Transactional(readOnly = true)
-    public Page<ProductSummaryResponse> findProducts(ProductSearchRequest request, Pageable pageable) {
-        return gifticonSaleRepository.findAll(GifticonSaleSpecification.publicSearch(request), pageable)
-                .map(ProductSummaryResponse::from);
+    public Page<ProductSummaryResponse> searchProductsV1(ProductSearchRequest request, Pageable pageable) {
+        return gifticonSaleRepository.searchProducts(request, pageable);
     }
 
+    /**
+     * v2 상품 검색 API
+     * 동일한 검색 조건에 대해서는 Caffeine 로컬 캐시를 우선 사용합니다.
+     * 캐시 key에는 검색 조건과 페이지 정보를 모두 포함해서
+     * 서로 다른 검색 요청이 같은 캐시를 공유하지 않도록 합니다.
+     */
+    @Cacheable(
+            cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE,  // 캐시 그룹 이름
+            key = "'keyword:' + (#request.normalizedKeyword() == null ? '' : #request.normalizedKeyword()) + " +
+                    "':brand:' + (#request.normalizedBrand() == null ? '' : #request.normalizedBrand()) + " +
+                    "':minPrice:' + (#request.minPrice() == null ? '' : #request.minPrice()) + " +
+                    "':maxPrice:' + (#request.maxPrice() == null ? '' : #request.maxPrice()) + " +
+                    "':page:' + #pageable.pageNumber + " +
+                    "':size:' + #pageable.pageSize"
+    )
+    @Transactional(readOnly = true)
+    public Page<ProductSummaryResponse> searchProductsV2(ProductSearchRequest request, Pageable pageable) {
+        return gifticonSaleRepository.searchProducts(request, pageable);
+    }
+
+    @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
     @Transactional
     public ProductDetailResponse updateProduct(Long sellerId, Long saleId, ProductUpdateRequest request) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
+
         if (sale.getSaleStatus() == SaleStatus.CANCELLED) {
             throw new ServiceException(ErrorCode.INVALID_SALE_STATUS);
         }
@@ -95,6 +129,7 @@ public class ProductService {
         return ProductPinValidationResponse.from(sale, pins);
     }
 
+    @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
     @Transactional
     public ProductDetailResponse updateSaleStatus(Long sellerId, Long saleId, ProductStatusUpdateRequest request) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
@@ -108,6 +143,7 @@ public class ProductService {
         return toDetailResponse(sale);
     }
 
+    @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
     @Transactional
     public ProductDetailResponse updatePinValidationStatus(Long sellerId, Long saleId, Long pinId, PinValidationUpdateRequest request) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
@@ -130,6 +166,7 @@ public class ProductService {
         return toDetailResponse(sale);
     }
 
+    @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
     @Transactional
     public void removeProduct(Long sellerId, Long saleId) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
@@ -144,8 +181,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<MyProductSummaryResponse> findMyProducts(Long sellerId, ProductSearchRequest request, Pageable pageable) {
         findUser(sellerId);
-        return gifticonSaleRepository.findAll(GifticonSaleSpecification.sellerSearch(sellerId, request), pageable)
-                .map(MyProductSummaryResponse::from);
+        return gifticonSaleRepository.searchMyProducts(sellerId, request, pageable);
     }
 
     private void validateCreateRequest(ProductCreateRequest request, User seller) {
@@ -211,6 +247,7 @@ public class ProductService {
         }
 
         int totalPinCount = sale.getPins().size() + normalizedPins.size();
+
         if (saleType == SaleType.PERSONAL && totalPinCount != 1) {
             throw new ServiceException(ErrorCode.INVALID_PIN_COUNT);
         }
@@ -218,11 +255,14 @@ public class ProductService {
 
     private List<String> normalizePinNumbers(List<String> rawPins) {
         LinkedHashSet<String> distinctPins = new LinkedHashSet<>();
+
         for (String rawPin : rawPins) {
             if (rawPin == null || rawPin.isBlank()) {
                 throw new ServiceException(ErrorCode.INVALID_PIN_INPUT, "유효하지 않은 핀번호입니다.");
             }
+
             String normalizedPin = rawPin.trim();
+
             if (!distinctPins.add(normalizedPin)) {
                 throw new ServiceException(ErrorCode.PIN_VALIDATION_FAILED, "중복된 핀번호입니다.");
             }
@@ -240,12 +280,15 @@ public class ProductService {
 
     private List<String> extractPinNumbers(String pinNumber, List<String> pinNumbers) {
         List<String> rawPins = new ArrayList<>();
+
         if (pinNumber != null && !pinNumber.isBlank()) {
             rawPins.add(pinNumber);
         }
+
         if (pinNumbers != null && !pinNumbers.isEmpty()) {
             rawPins.addAll(pinNumbers);
         }
+
         return rawPins;
     }
 
@@ -264,6 +307,7 @@ public class ProductService {
 
     private GifticonSale findOwnedSale(Long sellerId, Long saleId) {
         GifticonSale sale = findSale(saleId);
+
         if (!sale.isOwnedBy(sellerId)) {
             throw new ServiceException(ErrorCode.PRODUCT_OWNERSHIP_MISMATCH);
         }

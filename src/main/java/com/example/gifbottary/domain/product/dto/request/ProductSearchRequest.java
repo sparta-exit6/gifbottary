@@ -1,13 +1,8 @@
 package com.example.gifbottary.domain.product.dto.request;
 
-import com.example.gifbottary.domain.product.enums.SaleStatus;
-import com.example.gifbottary.domain.product.enums.SaleType;
-
 public record ProductSearchRequest(
         String keyword,
         String brand,
-        SaleType saleType,
-        SaleStatus saleStatus,
         Integer minPrice,
         Integer maxPrice
 ) {
@@ -18,5 +13,13 @@ public record ProductSearchRequest(
 
     public boolean hasBrand() {
         return brand != null && !brand.isBlank();
+    }
+
+    public String normalizedKeyword() {
+        return hasKeyword() ? keyword.trim() : null;
+    }
+
+    public String normalizedBrand() {
+        return hasBrand() ? brand.trim() : null;
     }
 }
