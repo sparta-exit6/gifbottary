@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 등록 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.href='./index.html'">
+        <span class="logo-icon">🎁</span>
+        <span>기프보따리</span>
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="검색어를 입력하세요">
+        <button>🔍</button>
+    </div>
+
+    <nav class="nav">
+        <button onclick="location.href='./index.html'">메인</button>
+        <button onclick="location.href='./mypage.html'">마이페이지</button>
+        <button onclick="logout()">로그아웃</button>
+    </nav>
+</header>
+
+<main class="register-page">
+    <section class="register-container">
+
+        <div class="register-brand">
+            <div class="register-logo-box" id="imagePreview">
+                🎁
+            </div>
+
+            <h1>기프보따리</h1>
+            <p>기프트 & 모바일쿠폰</p>
+        </div>
+
+        <div class="register-form-area">
+            <h2>판매 기프트카드 등록</h2>
+
+            <div class="register-form-row">
+                <label for="gifticonName">기프트카드 이름</label>
+                <input id="gifticonName" type="text" placeholder="입력하세요">
+            </div>
+
+            <div class="register-form-row">
+                <label for="originalPrice">금액</label>
+                <input id="originalPrice" type="number" placeholder="입력하세요">
+            </div>
+
+            <div class="register-form-row">
+                <label for="salePrice">판매가</label>
+                <input id="salePrice" type="number" placeholder="입력하세요">
+            </div>
+
+            <div class="register-form-row">
+                <label for="pinNumber">핀 번호</label>
+                <input id="pinNumber" type="text" placeholder="입력하세요">
+            </div>
+
+            <div class="register-form-row">
+                <label for="expiredAt">유효기간</label>
+                <input id="expiredAt" type="date">
+            </div>
+
+            <div class="register-form-row">
+                <label for="description">상세 정보</label>
+                <textarea id="description" placeholder="입력하세요"></textarea>
+            </div>
+
+            <div class="register-button-area">
+                <label class="file-upload-btn" for="gifticonImage">사진 첨부</label>
+                <input id="gifticonImage" type="file" accept="image/*" hidden onchange="previewImage(event)">
+
+                <button class="register-submit-btn" onclick="submitGifticon()">등록</button>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<script src="./js/app.js"></script>
+</body>
+</html>
