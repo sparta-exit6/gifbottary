@@ -65,6 +65,7 @@ public class SecurityConfig {
 
                         // PortOne Webhook이 POST라면 공개 필요
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments/portone").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/payments/portone").permitAll()
 
                         // 그 외 요청은 인증 필요
                         .anyRequest().authenticated()

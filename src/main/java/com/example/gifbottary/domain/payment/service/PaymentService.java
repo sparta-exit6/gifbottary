@@ -1,5 +1,7 @@
 package com.example.gifbottary.domain.payment.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,8 @@ import com.example.gifbottary.domain.payment.dto.request.PaymentConfirmRequest;
 import com.example.gifbottary.domain.payment.dto.request.PaymentCreateRequest;
 import com.example.gifbottary.domain.payment.dto.response.PaymentConfirmResponse;
 import com.example.gifbottary.domain.payment.dto.response.PaymentCreateResponse;
+import com.example.gifbottary.domain.payment.dto.response.PaymentGetListResponse;
+import com.example.gifbottary.domain.payment.dto.response.PaymentGetResponse;
 import com.example.gifbottary.domain.payment.entity.Payment;
 import com.example.gifbottary.domain.payment.repository.PaymentRepository;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
@@ -39,16 +43,11 @@ public class PaymentService {
 	 * @return 생성된 결제 정보
 	 */
 	@Transactional
-	public PaymentCreateResponse createPayment(PaymentCreateRequest request) {
+	public PaymentCreateResponse createPayment(Long buyerId, PaymentCreateRequest request) {
+		User buyer = entityManager.getReference(User.class, buyerId);
+
 		GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
 			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
-
-		// 구매 가능 핀 갯수 검증
-		if (sale.countAvailablePins() < request.quantity()) {
-			throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
-		}
-
-		User buyer = entityManager.getReference(User.class, request.buyerId());
 
 		Purchase purchase = Purchase.create(buyer, sale, request.quantity());
 		Purchase savedPurchase = purchaseRepository.save(purchase);
@@ -90,4 +89,32 @@ public class PaymentService {
 
 		return PaymentConfirmResponse.from(payment);
 	}
+
+	/**
+	 * 결제 목록 조회
+	 */
+	public List<PaymentGetListResponse> getListPayment(Long buyerId) {
+		return paymentRepository.findAllByBuyerIdWithProduct(buyerId)
+			.stream()
+			.map(PaymentGetListResponse::from)
+			.toList();
+	}
+
+	/**
+	 * 결제 상세 조회
+	 */
+	public PaymentGetResponse getPayment(Long paymentId, Long buyerId) {
+		Payment payment = paymentRepository.findByIdWithProduct(paymentId)
+			.orElseThrow(() -> new ServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+
+		if (!payment.getPurchase().isOwner(buyerId)) {
+			throw new ServiceException(ErrorCode.PAYMENT_OWNERSHIP_MISMATCH);
+		}
+
+		return PaymentGetResponse.from(payment);
+	}
+
+
+
+
 }

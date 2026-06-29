@@ -41,7 +41,7 @@ async function loadMyProducts() {
             return;
         }
 
-        allMyProducts = normalizeMyProducts(result.data);
+        allMyProducts = normalizeMyProducts(result.data).map(normalizeMyProduct);
         renderMyProducts();
         renderMyProductSummary();
 
@@ -75,6 +75,15 @@ function normalizeMyProducts(data) {
     }
 
     return [];
+}
+
+function normalizeMyProduct(product) {
+    return {
+        ...product,
+        originalPrice: product.originalPrice ?? product.faceValue ?? product.price,
+        imageText: product.imageText || product.brand || "GIFT CARD",
+        bgClass: product.bgClass || getMyProductBgClass(product.brand)
+    };
 }
 
 function renderSampleMyProducts() {
@@ -126,7 +135,9 @@ function renderSampleMyProducts() {
 
 function renderMyProductSummary() {
     const totalCount = allMyProducts.length;
-    const sellingCount = allMyProducts.filter(product => product.saleStatus === "SELLING").length;
+    const sellingCount = allMyProducts.filter(product =>
+        product.saleStatus === "SELLING" || product.saleStatus === "ON_SALE"
+    ).length;
     const soldOutCount = allMyProducts.filter(product => product.saleStatus === "SOLD_OUT").length;
 
     document.getElementById("totalCount").textContent = totalCount;
@@ -355,27 +366,66 @@ function removeLocalProduct(saleId) {
 function getSaleStatusText(status) {
     switch (status) {
         case "SELLING":
+        case "ON_SALE":
             return "판매중";
+        case "PENDING_REVIEW":
+            return "검수전";
         case "SOLD_OUT":
             return "판매완료";
+        case "CANCELLED":
+            return "판매취소";
+        case "PIN_INVALID":
+            return "검수반려";
         case "EXPIRED":
             return "기간만료";
         default:
-            return "상태없음";
+            return "검수전";
     }
 }
 
 function getSaleStatusClass(status) {
     switch (status) {
         case "SELLING":
+        case "ON_SALE":
             return "selling";
+        case "PENDING_REVIEW":
+            return "pending";
         case "SOLD_OUT":
             return "sold-out";
+        case "CANCELLED":
+        case "PIN_INVALID":
+            return "expired";
         case "EXPIRED":
             return "expired";
         default:
-            return "sold-out";
+            return "pending";
     }
+}
+
+function getMyProductBgClass(brand) {
+    const normalizedBrand = String(brand || "").toLowerCase();
+
+    if (normalizedBrand.includes("starbucks") || normalizedBrand.includes("스타벅스")) {
+        return "bg-starbucks";
+    }
+
+    if (normalizedBrand.includes("bhc")) {
+        return "bg-bhc";
+    }
+
+    if (normalizedBrand.includes("olive") || normalizedBrand.includes("올리브")) {
+        return "bg-olive";
+    }
+
+    if (normalizedBrand.includes("cu")) {
+        return "bg-cu";
+    }
+
+    if (normalizedBrand.includes("mega") || normalizedBrand.includes("메가박스")) {
+        return "bg-megabox";
+    }
+
+    return "bg-money";
 }
 
 function formatDateForMyProducts(value) {
