@@ -163,6 +163,9 @@ class ChatRoomServiceTest {
         when(user.getName()).thenReturn("구매자");
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
+        ChatMember member = mock(ChatMember.class);
+        when(chatMemberRepository.findByChatRoomIdAndUserId(roomId, userId)).thenReturn(Optional.of(member));
+
         String expectedLeaveMsg = String.format(ChatRoomService.LEAVE_MESSAGE_FORMAT, "구매자");
         ChatMessageResponse expectedResponse = new ChatMessageResponse(
                 500L, userId, "구매자", expectedLeaveMsg, MessageType.SYSTEM, LocalDateTime.now());
@@ -173,7 +176,7 @@ class ChatRoomServiceTest {
         chatRoomService.leaveRoom(roomId, userId);
 
         // then
-        verify(chatMemberRepository).deleteByChatRoomIdAndUserId(roomId, userId);
+        verify(chatMemberRepository).delete(member);
         verify(messagingTemplate).convertAndSend(eq("/sub/chat/" + roomId), eq(expectedResponse));
     }
 }

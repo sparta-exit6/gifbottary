@@ -7,10 +7,12 @@ import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.gifbottary.domain.chat.service.ChatMessageService;
 import com.example.gifbottary.domain.chat.service.ChatRoomService;
+import com.example.gifbottary.domain.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,9 +55,9 @@ public class ChatRoomController {
     @DeleteMapping("/{roomId}/members")
     public ResponseEntity<ApiResponse<Void>> leaveRoom(
             @PathVariable Long roomId,
-            @RequestParam("userId") Long userId
-    ) {
-        chatRoomService.leaveRoom(roomId, userId);
+            @AuthenticationPrincipal User user
+            ) {
+        chatRoomService.leaveRoom(roomId, user.getId());
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 

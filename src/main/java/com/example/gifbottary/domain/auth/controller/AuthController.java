@@ -21,15 +21,17 @@ public class AuthController {
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    public SignupResponse signup(
+    public ApiResponse<SignupResponse> signup(
             @Valid @RequestBody SignupRequest request
     ) {
-        return authService.signup(request);
+        return ApiResponse.ok(authService.signup(request));
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public ApiResponse<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        return ApiResponse.ok(authService.login(request));
     }
 
     @PostMapping("/logout")
