@@ -1,5 +1,7 @@
 package com.example.gifbottary.domain.payment.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,7 @@ import com.example.gifbottary.domain.payment.dto.request.PaymentConfirmRequest;
 import com.example.gifbottary.domain.payment.dto.request.PaymentCreateRequest;
 import com.example.gifbottary.domain.payment.dto.response.PaymentConfirmResponse;
 import com.example.gifbottary.domain.payment.dto.response.PaymentCreateResponse;
+import com.example.gifbottary.domain.payment.dto.response.PaymentGetListResponse;
 import com.example.gifbottary.domain.payment.entity.Payment;
 import com.example.gifbottary.domain.payment.repository.PaymentRepository;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
@@ -90,4 +93,20 @@ public class PaymentService {
 
 		return PaymentConfirmResponse.from(payment);
 	}
+
+	/**
+	 * 결제 목록 조회
+	 *
+	 * @return
+	 */
+	public List<PaymentGetListResponse> getListPayment(Long buyerId) {
+		return paymentRepository.findAllByBuyerIdWithProduct(buyerId)
+			.stream()
+			.map(PaymentGetListResponse::from)
+			.toList();
+	}
+
+
+
+
 }

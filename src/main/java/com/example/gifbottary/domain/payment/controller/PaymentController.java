@@ -1,7 +1,11 @@
 package com.example.gifbottary.domain.payment.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +17,7 @@ import com.example.gifbottary.domain.payment.dto.request.PaymentConfirmRequest;
 import com.example.gifbottary.domain.payment.dto.request.PaymentCreateRequest;
 import com.example.gifbottary.domain.payment.dto.response.PaymentConfirmResponse;
 import com.example.gifbottary.domain.payment.dto.response.PaymentCreateResponse;
+import com.example.gifbottary.domain.payment.dto.response.PaymentGetListResponse;
 import com.example.gifbottary.domain.payment.service.PaymentService;
 
 import jakarta.validation.Valid;
@@ -25,6 +30,7 @@ public class PaymentController {
 
 	private final PaymentService paymentService;
 
+	//결제 생성
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<ApiResponse<PaymentCreateResponse>> createPayment(
@@ -34,11 +40,20 @@ public class PaymentController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
 	}
 
+	//결제 확정
 	@PostMapping("/confirm")
 	public ResponseEntity<ApiResponse<PaymentConfirmResponse>> confirmPayment(
 		@Valid @RequestBody PaymentConfirmRequest request
 	) {
 		PaymentConfirmResponse response = paymentService.confirmPayment(request);
 		return ResponseEntity.ok(ApiResponse.ok(response));
+	}
+
+	//결제 목록 조회
+	@GetMapping
+	public ResponseEntity<ApiResponse<List<PaymentGetListResponse>>> getListPayment(
+		@AuthenticationPrincipal(expression = "id") Long buyerId
+	) {
+		return ResponseEntity.ok(ApiResponse.ok(paymentService.getListPayment(buyerId)));
 	}
 }
