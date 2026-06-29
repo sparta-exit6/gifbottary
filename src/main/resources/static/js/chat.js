@@ -1,19 +1,21 @@
 let stompClient = null;
 let currentChatRoomId = null;
+let currentUserId = null;
 
-const WS_ENDPOINT = "/ws";
+const WS_ENDPOINT = ((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host + "/ws/chat";
 
 const API = {
     createChatRoom: "/api/v1/chatrooms",
     chatRooms: "/api/v1/chatrooms",
-    messages: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}/messages`,
+    messages: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}/messages?roomId=${chatRoomId}`,
     readMessages: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}/messages/read`,
-    leaveChatRoom: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}`
+    leaveChatRoom: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}/members`,
+    me: "/api/v1/auth/me"
 };
 
 const STOMP = {
-    publish: (chatRoomId) => `/pub/chatrooms/${chatRoomId}`,
-    subscribe: (chatRoomId) => `/sub/chatrooms/${chatRoomId}/messages`
+    publish: () => `/pub/chat/message`,
+    subscribe: (chatRoomId) => `/sub/chat/${chatRoomId}`
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -67,8 +69,10 @@ async function createChatRoom(saleId) {
         }
 
         const chatRoomId =
+            result.data?.roomId ||
             result.data?.chatRoomId ||
             result.data?.id ||
+            result.roomId ||
             result.chatRoomId ||
             result.id;
 
@@ -81,10 +85,7 @@ async function createChatRoom(saleId) {
 
     } catch (error) {
         console.error(error);
-
-        // 백엔드 채팅 API가 아직 완성되지 않았을 때 화면 확인용
-        alert("채팅 API 연결 전이므로 예시 채팅방으로 이동합니다.");
-        location.href = "./chat.html?roomId=1";
+        alert("서버 연결에 실패하여 채팅방을 생성할 수 없습니다.");
     }
 }
 
@@ -95,6 +96,8 @@ async function initChatPage() {
         return;
     }
 
+    await loadCurrentUserId();
+
     const params = new URLSearchParams(location.search);
     currentChatRoomId = params.get("roomId") || "1";
 
@@ -102,6 +105,21 @@ async function initChatPage() {
     await loadMessages(currentChatRoomId);
     connectWebSocket(currentChatRoomId);
     markMessagesAsRead(currentChatRoomId);
+}
+
+async function loadCurrentUserId() {
+    const token = getAccessToken();
+    try {
+        const res = await fetch(API.me, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        if (res.ok && json.success !== false && json.data) {
+            currentUserId = json.data.userId || json.data.id;
+        }
+    } catch (e) {
+        console.error("내 정보 조회 실패:", e);
+    }
 }
 
 async function loadChatRooms() {
@@ -123,7 +141,7 @@ async function loadChatRooms() {
         const result = await response.json();
 
         if (!response.ok || result.success === false) {
-            renderSampleChatRooms();
+            list.innerHTML = `<div style="padding: 20px; text-align: center; color: #888;">채팅방 목록을 불러오지 못했습니다.</div>`;
             return;
         }
 
@@ -132,7 +150,7 @@ async function loadChatRooms() {
 
     } catch (error) {
         console.error(error);
-        renderSampleChatRooms();
+        list.innerHTML = `<div style="padding: 20px; text-align: center; color: #888;">서버 연결에 실패했습니다.</div>`;
     }
 }
 
@@ -140,44 +158,59 @@ function renderChatRooms(chatRooms) {
     const list = document.getElementById("chatRoomList");
 
     if (!chatRooms.length) {
-        renderSampleChatRooms();
+        list.innerHTML = `<div style="padding: 20px; text-align: center; color: #888;">참여 중인 채팅방이 없습니다.</div>`;
         return;
     }
 
-    list.innerHTML = chatRooms.map(room => `
-        <div class="chat-room-item ${String(room.chatRoomId) === String(currentChatRoomId) ? "active" : ""}"
-             onclick="moveChatRoom(${room.chatRoomId})">
-            <div class="chat-avatar">${getInitial(room.opponentName || "상대")}</div>
+    list.innerHTML = chatRooms.map(room => {
+        const roomId = room.roomId || room.chatRoomId;
+        const opponentName = room.otherUserName || room.opponentName || "상대방";
+        const lastMsg = room.lastMessageContent || room.lastMessage || "새로운 채팅방입니다.";
+        const unread = room.unreadCount || 0;
+        return `
+        <div class="chat-room-item ${String(roomId) === String(currentChatRoomId) ? "active" : ""}"
+             onclick="moveChatRoom(${roomId})">
+            <div class="chat-avatar">${getInitial(opponentName)}</div>
             <div>
-                <strong>${room.opponentName || "상대방"}</strong>
-                <p>${room.lastMessage || "새로운 채팅방입니다."}</p>
+                <strong>${opponentName}</strong>
+                <p>${lastMsg}</p>
             </div>
-            ${room.unreadCount > 0 ? `<span class="unread-count">${room.unreadCount}</span>` : ""}
-        </div>
-    `).join("");
-}
-
-function renderSampleChatRooms() {
-    const list = document.getElementById("chatRoomList");
-
-    list.innerHTML = `
-        <div class="chat-room-item active">
-            <div class="chat-avatar">김</div>
-            <div>
-                <strong>김민혁</strong>
-                <p>안녕하세요~</p>
-            </div>
-            <span class="unread-count">1</span>
-        </div>
-
-        <div class="chat-room-item">
-            <div class="chat-avatar">이</div>
-            <div>
-                <strong>이지현</strong>
-                <p>CU 상품 문의드립니다.</p>
-            </div>
+            ${unread > 0 ? `<span class="unread-count">${unread}</span>` : ""}
         </div>
     `;
+    }).join("");
+
+    const activeRoom = chatRooms.find(r => String(r.roomId || r.chatRoomId) === String(currentChatRoomId)) || chatRooms[0];
+    if (activeRoom) {
+        renderProductBox(activeRoom);
+    }
+}
+
+function renderProductBox(room) {
+    if (!room) return;
+    const nameEl = document.getElementById("chatProductName");
+    const priceEl = document.getElementById("chatProductPrice");
+    const statusEl = document.getElementById("chatProductStatus");
+    const viewBtn = document.getElementById("chatProductViewBtn");
+    const buyBtn = document.getElementById("chatProductBuyBtn");
+
+    if (nameEl) nameEl.textContent = room.productName || "상품 정보 없음";
+    if (priceEl) priceEl.textContent = room.salePrice ? `판매가 ${room.salePrice.toLocaleString()}원` : "판매가 -원";
+    if (statusEl) {
+        const statusMap = {
+            "ON_SALE": "판매중",
+            "SOLD_OUT": "판매완료",
+            "PENDING_REVIEW": "검수중",
+            "CANCELLED": "판매취소"
+        };
+        statusEl.textContent = statusMap[room.saleStatus] || room.saleStatus || "판매중";
+    }
+    if (viewBtn && room.saleId) {
+        viewBtn.onclick = () => { location.href = `./product-detail.html?saleId=${room.saleId}`; };
+    }
+    if (buyBtn && room.saleId) {
+        buyBtn.onclick = () => { location.href = `./product-detail.html?saleId=${room.saleId}`; };
+    }
 }
 
 function moveChatRoom(chatRoomId) {
@@ -198,7 +231,7 @@ async function loadMessages(chatRoomId) {
         const result = await response.json();
 
         if (!response.ok || result.success === false) {
-            renderSampleMessages();
+            console.warn("메시지 조회 실패:", result.message);
             return;
         }
 
@@ -206,8 +239,7 @@ async function loadMessages(chatRoomId) {
         renderMessages(messages);
 
     } catch (error) {
-        console.error(error);
-        renderSampleMessages();
+        console.error("메시지 조회 에러:", error);
     }
 }
 
@@ -223,37 +255,14 @@ function renderMessages(messages) {
     scrollToBottom();
 }
 
-function renderSampleMessages() {
-    const messageList = document.getElementById("messageList");
-
-    messageList.innerHTML = `
-        <div class="message-row me">
-            <div>
-                <div class="message-bubble">안녕하세요! 혹시 지금 상품 판매중인가요?</div>
-                <span class="message-time">14:30</span>
-            </div>
-        </div>
-
-        <div class="message-row other">
-            <div class="chat-avatar">김</div>
-            <div>
-                <div class="message-bubble">안녕하세요~ 네 가능합니다!</div>
-                <span class="message-time">14:31</span>
-            </div>
-        </div>
-    `;
-
-    scrollToBottom();
-}
-
 function connectWebSocket(chatRoomId) {
-    if (!window.SockJS || !window.StompJs) {
+    if (!window.StompJs) {
         console.warn("STOMP 라이브러리를 불러오지 못했습니다.");
         return;
     }
 
     stompClient = new StompJs.Client({
-        webSocketFactory: () => new SockJS(WS_ENDPOINT),
+        brokerURL: WS_ENDPOINT,
         connectHeaders: {
             Authorization: `Bearer ${getAccessToken()}`
         },
@@ -282,13 +291,13 @@ function sendMessage() {
     }
 
     const message = {
-        chatRoomId: Number(currentChatRoomId),
+        roomId: Number(currentChatRoomId),
         content: content
     };
 
     if (stompClient && stompClient.connected) {
         stompClient.publish({
-            destination: STOMP.publish(currentChatRoomId),
+            destination: STOMP.publish(),
             headers: {
                 Authorization: `Bearer ${getAccessToken()}`
             },
@@ -320,6 +329,7 @@ function appendMessage(message) {
 
 function createMessageHtml(message) {
     const isMe =
+        (currentUserId && String(message.senderId) === String(currentUserId)) ||
         message.senderType === "ME" ||
         message.isMine === true ||
         message.mine === true;
@@ -349,18 +359,7 @@ function createMessageHtml(message) {
 }
 
 async function markMessagesAsRead(chatRoomId) {
-    const token = getAccessToken();
-
-    try {
-        await fetch(API.readMessages(chatRoomId), {
-            method: "PATCH",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
-    } catch (error) {
-        console.error(error);
-    }
+    // 백엔드 웹소켓 진입 시 자동 읽음 처리되므로 HTTP 호출을 수행하지 않습니다.
 }
 
 async function leaveChatRoom() {
