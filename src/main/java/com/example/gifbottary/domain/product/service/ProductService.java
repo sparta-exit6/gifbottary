@@ -46,7 +46,7 @@ public class ProductService {
     private final UserRepository userRepository;
     private final PinEncryptor pinEncryptor;
 
-    @CacheEvict(cacheNames = "productSearchV2", allEntries = true)
+    @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
     @Transactional
     public ProductCreateResponse createProduct(Long sellerId, ProductCreateRequest request) {
         User seller = findUser(sellerId);
@@ -105,8 +105,9 @@ public class ProductService {
                     "':size:' + #pageable.pageSize"
     )
     @Transactional(readOnly = true)
-    public Page<ProductSummaryResponse> searchProductsV2(ProductSearchRequest request, Pageable pageable) {
-        return gifticonSaleRepository.searchProducts(request, pageable);
+    public ProductSearchPageResponse searchProductsV2(ProductSearchRequest request, Pageable pageable) {
+        Page<ProductSummaryResponse> page = gifticonSaleRepository.searchProducts(request, pageable);
+        return ProductSearchPageResponse.from(page);
     }
 
     @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)

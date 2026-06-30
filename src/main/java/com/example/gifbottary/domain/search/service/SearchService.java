@@ -92,7 +92,9 @@ public class SearchService {
      * Redis 조회 결과를 로컬 캐시에 저장하는 v2 메서드입니다.
      */
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = CacheConfig.POPULAR_KEYWORD_CACHE, key = "'popular:v2:limit:' + #limit", unless = "#result == null || #result.isEmpty()")
+    @Cacheable(cacheNames = CacheConfig.POPULAR_KEYWORD_CACHE,
+            key = "'popular:v2:limit:' + #limit",
+            unless = "#result == null || #result.isEmpty()")
     public List<PopularKeywordResponse> findPopularKeywordsV2(int limit) {
         return getPopularKeywords(limit);
     }
@@ -279,7 +281,7 @@ public class SearchService {
                 Duration.ofMinutes(popularSearchProperties.getDedupeTtlMinutes()));
 
 
-        if (Boolean.TRUE.equals(acquired)) {
+        if (!Boolean.TRUE.equals(acquired)) {
             return;
         }
 
