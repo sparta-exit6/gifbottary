@@ -27,3 +27,13 @@ portone:
   store-id: ${PORTONE_STORE_ID}
   channel-key: ${PORTONE_CHANNEL_KEY}
   webhook-secret: ${PORTONE_WEBHOOK_SECRET}
+
+dummy:
+  search:
+    enabled: false  # 더미데이터 생성 시 TRUE로 변경
+    size: 50000
+    batch-size: 1000
+    cleanup-before-load: true
+    seller-email: dummy-seller@gifbottary.local
+    seller-name: 더미 판매자
+    product-name-prefix: DUMMY-SEARCH
