@@ -22,6 +22,8 @@ import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.payment.entity.PaymentStatus;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.product.enums.SaleType;
+import com.example.gifbottary.infra.portone.PortOneClient;
+import com.example.gifbottary.infra.portone.dto.PortOnePaymentResponse;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ public class PaymentService {
 	private final PurchaseRepository purchaseRepository;
 	private final GifticonSaleRepository gifticonSaleRepository;
 	private final EntityManager entityManager;
+	private final PortOneClient portOneClient;
 
 	/**
 	 * 결제 생성
@@ -75,8 +78,9 @@ public class PaymentService {
 
 		Purchase purchase = payment.getPurchase();
 
+		PortOnePaymentResponse portOnePayment = portOneClient.getPayment(request.portOnePaymentId());
+		validatePortOnePayment(payment, portOnePayment);
 
-		// 결제 확정시 필요
 		payment.complete();
 		purchase.markPaid();
 
@@ -88,6 +92,16 @@ public class PaymentService {
 		purchase.getSale().sellPins(purchase.getQuantity());
 
 		return PaymentConfirmResponse.from(payment);
+	}
+
+	private void validatePortOnePayment(Payment payment, PortOnePaymentResponse portOnePayment) {
+		if (!portOnePayment.isPaid()) {
+			throw new ServiceException(ErrorCode.PAYMENT_NOT_PAID_AT_PG);
+		}
+
+		if (portOnePayment.totalAmount() != payment.getAmount()) {
+			throw new ServiceException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+		}
 	}
 
 	/**
