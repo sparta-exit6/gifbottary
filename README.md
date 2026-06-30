@@ -645,3 +645,201 @@ spring:
 - **상품 검색은 DB 부하 절감**
 - **인기 검색어는 Redis 조회 응답 최적화**
   를 목표로 각각 캐시를 적용했습니다.
+
+## 22. 🔖 인덱싱 최적화
+
+### 최적화 대상 API 선정
+
+- `GET /api/v1/products/me`
+
+### 기능 설명
+
+- 로그인한 사용자가 본인이 등록한 판매글 목록을 조회하는 API입니다.
+
+### 대상 선정 이유
+
+- 해당 API는 판매자가 마이페이지 또는 판매내역 화면에서 자주 호출할 수 있는 조회 기능입니다.
+- 판매글 데이터가 많아질수록 특정 판매자의 판매글을 찾기 위한 `seller_id` 조건 검색이 반복적으로 발생합니다.
+- 또한 판매 상태에 따라 판매중인 상품만 필터링해야 하는 경우 `sale_status` 조건 검색도 함께 발생합니다.
+- 판매글 목록은 최신순으로 보여주는 경우가 많기 때문에 `created_at DESC` 정렬도 함께 발생합니다.
+- 기존에는 `seller_id` 단일 인덱스만 사용되어 조건 검색은 가능했지만, `created_at` 기준 정렬 과정에서 `Using filesort`가 발생했습니다.
+- 따라서 `seller_id`, `sale_status` 조건 검색과 `created_at DESC` 정렬을 함께 최적화할 수 있는 복합 인덱스 적용 대상으로 선정했습니다.
+
+### 대상 쿼리
+
+```
+SELECT *
+FROM gifticon_sale
+WHERE seller_id = 1
+  AND sale_status = 'ON_SALE'
+ORDER BY created_at DESC;
+```
+
+---
+
+## 23. 🧪 더미데이터 5만 건 생성
+
+```
+DROP PROCEDURE IF EXISTS insert_dummy_gifticon_sale;
+
+DELIMITER $$
+
+CREATE PROCEDURE insert_dummy_gifticon_sale()
+BEGIN
+    DECLARE i INT DEFAULT 1;
+
+    WHILE i <= 50000 DO
+        INSERT INTO gifticon_sale (
+            created_at,
+            updated_at,
+            expire_at,
+            sale_price,
+            sale_status,
+            sale_type,
+            stock,
+            product_id,
+            seller_id
+        )
+        VALUES (
+            DATE_SUB(NOW(), INTERVAL FLOOR(RAND() * 365) DAY),
+            NOW(),
+            DATE_ADD(CURDATE(), INTERVAL FLOOR(1 + RAND() * 180) DAY),
+            4300,
+            'ON_SALE',
+            'PERSONAL',
+            1,
+            1,
+            1
+        );
+
+        SET i = i + 1;
+    END WHILE;
+END$$
+
+DELIMITER ;
+
+CALL insert_dummy_gifticon_sale();
+```
+
+- 해당 더미 데이터는 인덱스 적용 전후의 실행 계획과 정렬 비용 차이를 확인하기 위해 `seller_id = 1`, `sale_status = 'ON_SALE'` 조건을 만족하는 데이터 위주로 구성했습니다.  
+- 따라서 실제 운영 환경처럼 판매자와 판매 상태가 다양하게 분포된 데이터셋은 아니며, 이번 측정 결과는 편향된 테스트 데이터 기준의 결과입니다.
+
+---
+
+## 24. 🔴 인덱스 적용 전 EXPLAIN 결과
+
+```
+EXPLAIN
+SELECT *
+FROM gifticon_sale
+WHERE seller_id = 1
+  AND sale_status = 'ON_SALE'
+ORDER BY created_at DESC;
+```
+
+| 구분 | type | key | rows | Extra |
+|---|---|---|---:|---|
+| Before | ref | idx_gifticon_sale_seller_id | 49,901 | Using where; Using filesort |
+
+### 분석
+
+- 기존에는 `seller_id`에 대한 단일 인덱스가 존재하여 `type=ref`로 조회되었습니다.
+- 하지만 `sale_status` 조건과 `created_at DESC` 정렬을 함께 처리할 수 있는 복합 인덱스가 없었습니다.
+- 그 결과 `Extra`에 `Using filesort`가 발생했습니다.
+- 테스트 데이터 대부분이 `seller_id = 1`과 `sale_status = 'ON_SALE'` 조건을 만족하도록 구성되어 있어, 조회 대상 `rows` 값은 49,901로 나타났습니다.
+- 이번 최적화의 핵심은 조회 대상 행 수를 줄이는 것이 아니라, 최신순 정렬 과정에서 발생하는 filesort 비용을 줄이는 것입니다.
+
+---
+
+## 25. 🔖 적용 인덱스
+
+```
+CREATE INDEX idx_gifticon_sale_seller_status_created_at
+ON gifticon_sale (seller_id, sale_status, created_at DESC);
+```
+
+### 인덱스 설계 이유
+
+- `seller_id`는 로그인한 사용자가 본인이 등록한 판매글만 조회하기 위한 핵심 조건 컬럼입니다.
+- `sale_status`는 판매 상태를 필터링하기 위한 조건 컬럼입니다.
+- `created_at`은 판매글 목록을 최신순으로 정렬할 때 사용되는 컬럼입니다.
+- 복합 인덱스는 왼쪽 컬럼부터 순서대로 활용되므로, `WHERE` 절에서 동등 조건으로 사용되는 `seller_id`, `sale_status`를 앞에 배치했습니다.
+- 이후 `ORDER BY created_at DESC` 정렬까지 인덱스를 활용할 수 있도록 `created_at DESC`를 마지막에 배치했습니다.
+- 즉, 실제 조회 흐름인 `판매자 필터링 → 판매 상태 필터링 → 최신순 정렬` 순서에 맞춰 복합 인덱스를 설계했습니다.
+
+---
+
+## 26. 🟢 인덱스 적용 후 실행 계획 분석
+
+```
+EXPLAIN
+SELECT *
+FROM gifticon_sale
+WHERE seller_id = 1
+  AND sale_status = 'ON_SALE'
+ORDER BY created_at DESC;
+```
+
+| 구분 | type | key | rows | Extra |
+|---|---|---|---:|---|
+| After | ref | idx_gifticon_sale_seller_status_created_at | 49,901 | Using index condition |
+
+### 분석
+
+- 복합 인덱스 적용 후 기존 `seller_id` 단일 인덱스 대신 `idx_gifticon_sale_seller_status_created_at` 인덱스가 사용되었습니다.
+- `seller_id`, `sale_status`, `created_at` 순서의 복합 인덱스를 통해 조건 검색과 최신순 정렬을 함께 처리할 수 있도록 개선했습니다.
+- 인덱스 적용 전 발생하던 `Using filesort`가 사라졌고, `Using index condition`이 사용되는 것을 확인했습니다.
+- 이를 통해 기존 단일 인덱스로는 해결되지 않던 정렬 비용을 줄일 수 있었습니다.
+
+---
+
+## 27. 📊 50,000건 기준 실행 시간 비교
+
+실제 성능 비교는 50,000건 데이터를 기준으로 동일한 쿼리를 실행하여 측정했습니다.
+
+### 실행 시간 측정 쿼리
+
+```
+SELECT *
+FROM gifticon_sale
+WHERE seller_id = 1
+  AND sale_status = 'ON_SALE'
+ORDER BY created_at DESC
+LIMIT 50000;
+```
+
+### 실행 계획 및 실행 시간 비교
+
+| 구분 | 데이터 수 | 사용 인덱스 | rows | 실행 시간 | Extra |
+|---|---:|---|---:|---:|---|
+| Before | 50,000건 | idx_gifticon_sale_seller_id | 49,901 | 993 ms | Using filesort |
+| After | 50,000건 | idx_gifticon_sale_seller_status_created_at | 49,901 | 743 ms | Using index condition |
+
+### 3회 반복 측정 결과
+
+| 구분 | 1회차 | 2회차 | 3회차 | 평균 |
+|---|---:|---:|---:|---:|
+| Before | 1s 4ms | 1s 66ms | 910 ms | 993 ms |
+| After | 697 ms | 798 ms | 735 ms | 743 ms |
+| 개선폭 | 약 307ms 감소 | 약 268ms 감소 | 약 175ms 감소 | 약 250ms 감소 |
+
+### 결과 분석
+
+- 50,000건 데이터를 기준으로 동일한 조회 쿼리를 3회 반복 실행하여 인덱스 적용 전후의 실행 시간을 비교했습니다.
+- 인덱스 적용 전에는 `seller_id` 단일 인덱스인 `idx_gifticon_sale_seller_id`가 사용되었습니다.
+- 이 경우 `seller_id` 조건 검색에는 인덱스가 사용되었지만, `sale_status` 조건과 `created_at DESC` 정렬까지 함께 처리하지는 못해 `Extra`에 `Using filesort`가 발생했습니다.
+- 복합 인덱스 적용 후에는 `idx_gifticon_sale_seller_status_created_at` 인덱스가 사용되었습니다.
+- 해당 인덱스는 `seller_id`, `sale_status`, `created_at` 순서로 구성되어 있어 조건 검색 패턴에 맞는 인덱스를 사용하도록 개선하고, 최신순 정렬 과정에서 발생하던 filesort 비용을 줄일 수 있도록 설계했습니다.
+- Before와 After의 `rows` 값은 모두 49,901로 동일했습니다.
+- 이는 테스트 데이터 대부분이 `seller_id = 1`과 `sale_status = 'ON_SALE'` 조건을 만족하도록 구성되어 있어, 조회 대상 행 수 자체는 크게 줄어들지 않았기 때문입니다.
+- 하지만 실행 계획에서 `Using filesort`가 제거되고 `Using index condition`이 사용되면서 정렬 비용이 감소했습니다.
+- 실행 시간 또한 평균 993ms에서 743ms로 줄어들어, 약 250ms 정도의 성능 개선을 확인할 수 있었습니다.
+- 따라서 이번 최적화는 탐색 행 수를 줄이는 최적화라기보다는, 기존 단일 인덱스로는 해결되지 않던 최신순 정렬 비용을 복합 인덱스를 통해 개선한 사례라고 볼 수 있습니다.
+- 다만 이번 더미 데이터는 대부분 `seller_id = 1`과 `sale_status = 'ON_SALE'` 조건을 만족하도록 구성했기 때문에, 복합 인덱스의 필터링 효과보다는 `created_at DESC` 정렬 과정에서 발생하던 `Using filesort` 개선 효과를 확인하는 데 초점을 두었습니다.
+---
+
+## 28. ⚠️ 인덱스 적용 시 고려한 부작용
+
+- 인덱스는 조회 성능을 개선할 수 있지만, 모든 상황에서 무조건 좋은 것은 아닙니다.
+- `INSERT`, `UPDATE`, `DELETE`가 발생할 때마다 테이블 데이터뿐만 아니라 인덱스도 함께 갱신되어야 하므로 쓰기 성능에는 부담이 생길 수 있습니다.
+- 따라서 모든 컬럼에 인덱스를 추가하지 않고, 실제 조회 조건과 정렬에 자주 사용되는 `seller_id`, `sale_status`, `created_at` 컬럼만 대상으로 복합 인덱스를 설계했습니다.
