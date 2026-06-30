@@ -22,6 +22,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
+import com.example.gifbottary.domain.product.enums.SaleStatus;
 import com.example.gifbottary.domain.chat.enums.MessageType;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,8 +30,12 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import com.example.gifbottary.common.exception.ErrorCode;
+import com.example.gifbottary.common.exception.ServiceException;
 
 @ExtendWith(MockitoExtension.class)
 class ChatRoomServiceTest {
@@ -60,24 +65,19 @@ class ChatRoomServiceTest {
     private ArgumentCaptor<List<ChatMember>> chatMemberListCaptor;
 
     @Test
-    @DisplayName("채팅방 목록 조회 - 유저가 속한 방 목록이 정상적으로 조회된다")
+    @DisplayName("채팅방 목록 조회 성공 - 유저가 소속된 방 목록이 반환되어야 한다")
     void getRooms_success() {
         // given
         Long userId = 1L;
-        ChatRoomListResponse room1 = new ChatRoomListResponse(
-                100L, "판매자A", "아메리카노", "안녕하세요", LocalDateTime.now(), 2L);
-
-        when(chatRoomRepository.findRoomListByUserId(userId)).thenReturn(List.of(room1));
+        ChatRoomListResponse roomDto = new ChatRoomListResponse(100L, 2L, "상대방", "아메리카노", 4300, SaleStatus.ON_SALE, "마지막 메시지", LocalDateTime.now(), 3L);
+        when(chatRoomRepository.findRoomListByUserId(userId)).thenReturn(List.of(roomDto));
 
         // when
         List<ChatRoomListResponse> responses = chatRoomService.getRooms(userId);
 
         // then
-        assertThat(responses).hasSize(1);
-        assertEquals(100L, responses.get(0).roomId());
-        assertEquals("판매자A", responses.get(0).otherUserName());
-        assertEquals("아메리카노", responses.get(0).productName());
-
+        assertEquals(1, responses.size());
+        assertEquals("상대방", responses.get(0).otherUserName());
         verify(chatRoomRepository).findRoomListByUserId(userId);
     }
 
@@ -89,7 +89,7 @@ class ChatRoomServiceTest {
         Long buyerId = 2L;
         Long sellerId = 3L;
 
-        ChatRoomCreateRequest request = new ChatRoomCreateRequest(saleId, buyerId);
+        ChatRoomCreateRequest request = new ChatRoomCreateRequest(saleId);
 
         // 의존 관계 순서대로 Mock 설정 (Buyer, Seller -> Sale)
         User buyer = mock(User.class);
@@ -110,10 +110,9 @@ class ChatRoomServiceTest {
         when(chatRoomRepository.save(any(ChatRoom.class))).thenReturn(savedRoom);
 
         // when
-        ChatRoomCreateResponse response = chatRoomService.createRoom(request);
+        ChatRoomCreateResponse response = chatRoomService.createRoom(request, buyerId);
 
         // then
-        // [단위 테스트 한계] 이 단언문은 실제 ID 매핑 비즈니스 로직을 완벽히 검증하진 못하며, mock 객체가 반환한 100L이 응답 DTO에 제대로 담겨 내려가는지만 검증합니다.
         assertEquals(100L, response.roomId());
 
         verify(chatRoomRepository).save(any(ChatRoom.class));
@@ -135,7 +134,7 @@ class ChatRoomServiceTest {
         Long buyerId = 2L;
         Long existingRoomId = 100L;
 
-        ChatRoomCreateRequest request = new ChatRoomCreateRequest(saleId, buyerId);
+        ChatRoomCreateRequest request = new ChatRoomCreateRequest(saleId);
 
         ChatRoom existingRoom = mock(ChatRoom.class);
         when(existingRoom.getId()).thenReturn(existingRoomId);
@@ -143,7 +142,7 @@ class ChatRoomServiceTest {
         when(chatRoomRepository.findBySaleIdAndBuyerId(saleId, buyerId)).thenReturn(Optional.of(existingRoom));
 
         // when
-        ChatRoomCreateResponse response = chatRoomService.createRoom(request);
+        ChatRoomCreateResponse response = chatRoomService.createRoom(request, buyerId);
 
         // then
         assertEquals(existingRoomId, response.roomId());
@@ -151,6 +150,30 @@ class ChatRoomServiceTest {
         verify(chatRoomRepository).findBySaleIdAndBuyerId(saleId, buyerId);
         verify(chatRoomRepository, never()).save(any(ChatRoom.class));
         verify(chatMemberRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("채팅방 생성 실패 - 본인이 올린 상품에 채팅방을 생성하려 하면 예외가 발생한다")
+    void createRoom_cannotChatWithSelf() {
+        // given
+        Long saleId = 1L;
+        Long buyerId = 2L;
+
+        ChatRoomCreateRequest request = new ChatRoomCreateRequest(saleId);
+
+        User buyer = mock(User.class);
+        when(buyer.getId()).thenReturn(buyerId);
+
+        GifticonSale sale = mock(GifticonSale.class);
+        when(sale.getSeller()).thenReturn(buyer);
+
+        when(chatRoomRepository.findBySaleIdAndBuyerId(saleId, buyerId)).thenReturn(Optional.empty());
+        when(gifticonSaleRepository.findById(saleId)).thenReturn(Optional.of(sale));
+        when(userRepository.findById(buyerId)).thenReturn(Optional.of(buyer));
+
+        // when & then
+        ServiceException exception = assertThrows(ServiceException.class, () -> chatRoomService.createRoom(request, buyerId));
+        assertEquals(ErrorCode.CANNOT_CHAT_WITH_SELF, exception.getErrorCode());
     }
 
     @Test

@@ -30,19 +30,19 @@
 
         <aside class="chat-left-panel">
 
-            <div class="chat-product-box">
+            <div class="chat-product-box" id="chatProductBox">
                 <h3>거래 상품</h3>
 
-                <div class="chat-product-image bg-starbucks">
-                    STARBUCKS
+                <div class="chat-product-image bg-starbucks" id="chatProductBrand">
+                    GIFTICON
                 </div>
 
-                <h4>스타벅스 아메리카노 Tall</h4>
-                <p>판매가 4,300원</p>
-                <span class="status-selling">판매중</span>
+                <h4 id="chatProductName">상품 정보를 불러오는 중...</h4>
+                <p id="chatProductPrice">판매가 -원</p>
+                <span class="status-selling" id="chatProductStatus">판매중</span>
 
-                <button onclick="location.href='./product-detail.html'">상품 보기</button>
-                <button class="buy-small-btn">구매하기</button>
+                <button id="chatProductViewBtn" onclick="location.href='./index.html'">상품 보기</button>
+                <button id="chatProductBuyBtn" class="buy-small-btn" onclick="location.href='./index.html'">구매하기</button>
             </div>
 
             <div class="chat-list-box">
