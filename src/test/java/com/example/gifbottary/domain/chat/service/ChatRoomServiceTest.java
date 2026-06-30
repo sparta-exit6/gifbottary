@@ -18,7 +18,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import tools.jackson.databind.json.JsonMapper;
 
 import com.example.gifbottary.domain.chat.dto.response.ChatMessageResponse;
 import com.example.gifbottary.domain.chat.dto.response.ChatRoomListResponse;
@@ -59,7 +60,10 @@ class ChatRoomServiceTest {
     private ChatMessageService chatMessageService;
 
     @Mock
-    private SimpMessagingTemplate messagingTemplate;
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Mock
+    private JsonMapper jsonMapper;
 
     @Captor
     private ArgumentCaptor<List<ChatMember>> chatMemberListCaptor;
@@ -104,10 +108,17 @@ class ChatRoomServiceTest {
         ChatRoom savedRoom = mock(ChatRoom.class);
         when(savedRoom.getId()).thenReturn(100L);
 
+        when(buyer.getName()).thenReturn("구매자");
         when(chatRoomRepository.findBySaleIdAndBuyerId(saleId, buyerId)).thenReturn(Optional.empty());
         when(userRepository.findById(buyerId)).thenReturn(Optional.of(buyer));
         when(gifticonSaleRepository.findById(saleId)).thenReturn(Optional.of(sale));
         when(chatRoomRepository.save(any(ChatRoom.class))).thenReturn(savedRoom);
+
+        ChatMessageResponse enterResponse = mock(ChatMessageResponse.class);
+        when(chatMessageService.saveSystemMessage(eq(100L), eq(buyerId), anyString())).thenReturn(enterResponse);
+        try {
+            when(jsonMapper.writeValueAsString(enterResponse)).thenReturn("{\"messageId\":1}");
+        } catch (Exception e) {}
 
         // when
         ChatRoomCreateResponse response = chatRoomService.createRoom(request, buyerId);
@@ -124,6 +135,7 @@ class ChatRoomServiceTest {
                 .hasSize(2)
                 .extracting(m -> m.getUser().getId())
                 .containsExactlyInAnyOrder(buyerId, sellerId);
+        verify(stringRedisTemplate).convertAndSend(eq("chat-room:100"), eq("{\"messageId\":1}"));
     }
 
     @Test
@@ -194,12 +206,15 @@ class ChatRoomServiceTest {
                 500L, userId, "구매자", expectedLeaveMsg, MessageType.SYSTEM, LocalDateTime.now());
         when(chatMessageService.saveSystemMessage(roomId, userId, expectedLeaveMsg))
                 .thenReturn(expectedResponse);
+        try {
+            when(jsonMapper.writeValueAsString(expectedResponse)).thenReturn("{\"messageId\":500}");
+        } catch (Exception e) {}
 
         // when
         chatRoomService.leaveRoom(roomId, userId);
 
         // then
         verify(chatMemberRepository).delete(member);
-        verify(messagingTemplate).convertAndSend(eq("/sub/chat/" + roomId), eq(expectedResponse));
+        verify(stringRedisTemplate).convertAndSend(eq("chat-room:" + roomId), eq("{\"messageId\":500}"));
     }
 }

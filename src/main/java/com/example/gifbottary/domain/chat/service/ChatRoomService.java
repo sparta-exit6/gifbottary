@@ -14,14 +14,17 @@ import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -35,7 +38,8 @@ public class ChatRoomService {
     private final GifticonSaleRepository gifticonSaleRepository;
     private final UserRepository userRepository;
     private final ChatMessageService chatMessageService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final JsonMapper jsonMapper;
 
     public List<ChatRoomListResponse> getRooms(Long userId) {
         return chatRoomRepository.findRoomListByUserId(userId);
@@ -69,9 +73,10 @@ public class ChatRoomService {
         ChatMember sellerMember = new ChatMember(savedRoom, sale.getSeller());
         chatMemberRepository.saveAll(List.of(buyerMember, sellerMember));
 
-        // 5. 최초 개설 시스템 메시지 DB 각인 (소켓 연결 시 도배 방지용 정석 위치)
+        // 5. 최초 개설 시스템 메시지 DB 각인 및 Redis Pub/Sub 발행
         String enterMsg = String.format(ENTER_MESSAGE_FORMAT, buyer.getName());
-        chatMessageService.saveSystemMessage(savedRoom.getId(), buyer.getId(), enterMsg);
+        ChatMessageResponse enterResponse = chatMessageService.saveSystemMessage(savedRoom.getId(), buyer.getId(), enterMsg);
+        publishSystemMessage(savedRoom.getId(), enterResponse);
 
         return new ChatRoomCreateResponse(savedRoom.getId());
     }
@@ -88,6 +93,15 @@ public class ChatRoomService {
 
         String leaveMsg = String.format(LEAVE_MESSAGE_FORMAT, user.getName());
         ChatMessageResponse response = chatMessageService.saveSystemMessage(roomId, userId, leaveMsg);
-        messagingTemplate.convertAndSend("/sub/chat/" + roomId, response);
+        publishSystemMessage(roomId, response);
+    }
+
+    private void publishSystemMessage(Long roomId, ChatMessageResponse response) {
+        try {
+            String json = jsonMapper.writeValueAsString(response);
+            stringRedisTemplate.convertAndSend("chat-room:" + roomId, json);
+        } catch (Exception e) {
+            log.error("Redis Pub/Sub 시스템 메시지 발행 실패 - Room: {}", roomId, e);
+        }
     }
 }
