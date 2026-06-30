@@ -721,6 +721,9 @@ DELIMITER ;
 CALL insert_dummy_gifticon_sale();
 ```
 
+- 해당 더미 데이터는 인덱스 적용 전후의 실행 계획과 정렬 비용 차이를 확인하기 위해 `seller_id = 1`, `sale_status = 'ON_SALE'` 조건을 만족하는 데이터 위주로 구성했습니다.  
+- 따라서 실제 운영 환경처럼 판매자와 판매 상태가 다양하게 분포된 데이터셋은 아니며, 이번 측정 결과는 편향된 테스트 데이터 기준의 결과입니다.
+
 ---
 
 ## 24. 🔴 인덱스 적용 전 EXPLAIN 결과
@@ -826,13 +829,13 @@ LIMIT 50000;
 - 인덱스 적용 전에는 `seller_id` 단일 인덱스인 `idx_gifticon_sale_seller_id`가 사용되었습니다.
 - 이 경우 `seller_id` 조건 검색에는 인덱스가 사용되었지만, `sale_status` 조건과 `created_at DESC` 정렬까지 함께 처리하지는 못해 `Extra`에 `Using filesort`가 발생했습니다.
 - 복합 인덱스 적용 후에는 `idx_gifticon_sale_seller_status_created_at` 인덱스가 사용되었습니다.
-- 해당 인덱스는 `seller_id`, `sale_status`, `created_at` 순서로 구성되어 있어 조건 검색과 최신순 정렬을 함께 처리할 수 있도록 설계했습니다.
+- 해당 인덱스는 `seller_id`, `sale_status`, `created_at` 순서로 구성되어 있어 조건 검색 패턴에 맞는 인덱스를 사용하도록 개선하고, 최신순 정렬 과정에서 발생하던 filesort 비용을 줄일 수 있도록 설계했습니다.
 - Before와 After의 `rows` 값은 모두 49,901로 동일했습니다.
 - 이는 테스트 데이터 대부분이 `seller_id = 1`과 `sale_status = 'ON_SALE'` 조건을 만족하도록 구성되어 있어, 조회 대상 행 수 자체는 크게 줄어들지 않았기 때문입니다.
 - 하지만 실행 계획에서 `Using filesort`가 제거되고 `Using index condition`이 사용되면서 정렬 비용이 감소했습니다.
 - 실행 시간 또한 평균 993ms에서 743ms로 줄어들어, 약 250ms 정도의 성능 개선을 확인할 수 있었습니다.
 - 따라서 이번 최적화는 탐색 행 수를 줄이는 최적화라기보다는, 기존 단일 인덱스로는 해결되지 않던 최신순 정렬 비용을 복합 인덱스를 통해 개선한 사례라고 볼 수 있습니다.
-
+- 다만 이번 더미 데이터는 대부분 `seller_id = 1`과 `sale_status = 'ON_SALE'` 조건을 만족하도록 구성했기 때문에, 복합 인덱스의 필터링 효과보다는 `created_at DESC` 정렬 과정에서 발생하던 `Using filesort` 개선 효과를 확인하는 데 초점을 두었습니다.
 ---
 
 ## 28. ⚠️ 인덱스 적용 시 고려한 부작용
