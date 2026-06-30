@@ -438,18 +438,19 @@ async function submitGifticon() {
         return;
     }
 
-    const request = {
-        saleType: "PERSONAL",
-        brand: brand,
-        productName: gifticonName,
-        faceValue: Number(originalPrice),
-        expireAt: expiredAt,
-        salePrice: Number(salePrice),
-        pinNumber: pinNumber,
-        imageUrl: null
-    };
-
     try {
+        const saleType = await resolveSaleTypeByCurrentUser(token);
+        const request = {
+            saleType: saleType,
+            brand: brand,
+            productName: gifticonName,
+            faceValue: Number(originalPrice),
+            expireAt: expiredAt,
+            salePrice: Number(salePrice),
+            pinNumber: pinNumber,
+            imageUrl: null
+        };
+
         const response = await fetch("/api/v1/products", {
             method: "POST",
             headers: {
@@ -473,6 +474,23 @@ async function submitGifticon() {
         console.error(error);
         alert("서버와 연결할 수 없습니다.");
     }
+}
+
+async function resolveSaleTypeByCurrentUser(token) {
+    const response = await fetch("/api/v1/auth/me", {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.success === false) {
+        throw new Error(result.message || "사용자 정보를 불러오지 못했습니다.");
+    }
+
+    return result.data?.role === "ADMIN" ? "PLATFORM" : "PERSONAL";
 }
 
 async function logout() {
