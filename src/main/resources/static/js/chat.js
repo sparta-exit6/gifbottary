@@ -251,7 +251,8 @@ function renderMessages(messages) {
         return;
     }
 
-    messageList.innerHTML = messages.map(message => createMessageHtml(message)).join("");
+    const sortedMessages = messages.slice().reverse();
+    messageList.innerHTML = sortedMessages.map(message => createMessageHtml(message)).join("");
     scrollToBottom();
 }
 
@@ -328,6 +329,14 @@ function appendMessage(message) {
 }
 
 function createMessageHtml(message) {
+    if (message.messageType === "SYSTEM") {
+        return `
+            <div class="message-row system">
+                <div class="system-bubble">${escapeHtml(message.content)}</div>
+            </div>
+        `;
+    }
+
     const isMe =
         (currentUserId && String(message.senderId) === String(currentUserId)) ||
         message.senderType === "ME" ||
