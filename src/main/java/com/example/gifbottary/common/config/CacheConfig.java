@@ -9,6 +9,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -26,12 +27,9 @@ public class CacheConfig {
     public static final String PRODUCT_SEARCH_V2_CACHE = "productSearchV2";
 
     @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
         GenericJacksonJsonRedisSerializer valueSerializer =
-                GenericJacksonJsonRedisSerializer.create(builder -> builder
-                        .enableSpringCacheNullValueSupport()
-                        .enableUnsafeDefaultTyping()
-                );
+                new GenericJacksonJsonRedisSerializer(objectMapper);
 
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 // Redis key는 사람이 읽을 수 있는 문자열 형태로 저장합니다.
