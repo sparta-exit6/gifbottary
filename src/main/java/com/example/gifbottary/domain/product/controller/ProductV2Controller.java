@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 상품/판매글 v2 검색 API 컨트롤러입니다.
  *
- * v2는 v1과 동일한 검색 조건을 지원하지만,
- * 서비스 레이어에서 로컬 캐시(Caffeine)를 적용해 응답 성능을 개선합니다.
+ * v2는 동일한 검색 조건에 대해 Redis Remote Cache를 우선 조회해
+ * 반복 요청의 응답 성능을 개선합니다.
  */
 @RestController
 @RequestMapping("/api/v2/products")
