@@ -13,9 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.quality.Strictness;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -30,6 +28,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,7 +37,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class SearchServiceTest {
 
     @Mock
@@ -84,7 +82,7 @@ class SearchServiceTest {
     }
 
     @Test
-    @DisplayName("brand만 전달되어도 최근 검색어 저장 대상으로 처리한다")
+    @DisplayName("brand만 전달되면 최근 검색어와 인기 검색어 집계 대상 키워드로 사용한다")
     void saveSearchKeyword_withBrandOnly_usesBrandAsKeyword() {
         User user = createUser(1L);
         ProductSearchRequest request = new ProductSearchRequest(null, "배스킨라빈스", null, null);
@@ -106,7 +104,7 @@ class SearchServiceTest {
         searchService.saveSearchKeyword(1L, request);
 
         verify(searchKeywordRepository).saveAndFlush(any(SearchKeyword.class));
-        verify(stringRedisTemplate).opsForValue();
+        verify(zSetOperations).incrementScore(anyString(), eq("배스킨라빈스"), eq(1.0));
     }
 
     @Test
@@ -131,6 +129,27 @@ class SearchServiceTest {
 
         verify(searchKeywordRepository, never()).saveAndFlush(any(SearchKeyword.class));
         verify(searchKeywordRepository).increaseCount(eq(1L), eq("스타벅스"), any());
+        verify(zSetOperations).incrementScore(anyString(), eq("스타벅스"), eq(1.0));
+    }
+
+    @Test
+    @DisplayName("같은 사용자가 같은 검색어를 중복 검색하면 인기 검색어 점수는 증가하지 않는다")
+    void saveSearchKeyword_whenDedupeKeyExists_doesNotIncreasePopularScore() {
+        User user = createUser(1L);
+        ProductSearchRequest request = new ProductSearchRequest("스타벅스", null, null, null);
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(searchKeywordRepository.increaseCount(eq(1L), eq("스타벅스"), any()))
+                .willReturn(1);
+        given(popularSearchProperties.getDedupeKeyPrefix()).willReturn("popular:dedupe");
+        given(popularSearchProperties.getDedupeTtlMinutes()).willReturn(10L);
+        given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.setIfAbsent(anyString(), anyString(), any(Duration.class)))
+                .willReturn(false);
+
+        searchService.saveSearchKeyword(1L, request);
+
+        verify(zSetOperations, never()).incrementScore(anyString(), anyString(), anyDouble());
     }
 
     @Test
@@ -159,7 +178,7 @@ class SearchServiceTest {
     }
 
     @Test
-    @DisplayName("Redis 인기 검색어 조회가 성공하면 랭킹 목록을 반환한다")
+    @DisplayName("Redis 인기 검색어 조회가 성공하면 순위 목록을 반환한다")
     void findPopularKeywordsV1_whenRedisSucceeds_returnsRankedKeywords() {
         ZSetOperations.TypedTuple<String> tuple1 = ZSetOperations.TypedTuple.of("스타벅스", 3.0);
         ZSetOperations.TypedTuple<String> tuple2 = ZSetOperations.TypedTuple.of("배스킨라빈스", 1.0);

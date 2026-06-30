@@ -1,5 +1,7 @@
 package com.example.gifbottary.common.config;
 
+import com.example.gifbottary.domain.product.dto.response.ProductSearchPageResponse;
+import com.example.gifbottary.domain.search.dto.response.PopularKeywordResponse;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,12 +9,15 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,37 +28,43 @@ import java.util.Map;
 @EnableCaching
 public class CacheConfig {
 
-    public static final String POPULAR_KEYWORD_CACHE = "popularKeywordV2";
     public static final String PRODUCT_SEARCH_V2_CACHE = "productSearchV2";
+    public static final String POPULAR_KEYWORD_CACHE = "popularKeyword";
 
     @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
-        GenericJacksonJsonRedisSerializer valueSerializer =
-                new GenericJacksonJsonRedisSerializer(objectMapper);
-
-        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                // Redis key는 사람이 읽을 수 있는 문자열 형태로 저장합니다.
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, JsonMapper jsonMapper) {
+        // JavaTimeModule 등록 불필요 - Jackson 3는 java.time을 기본 지원
+        RedisCacheConfiguration baseConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
-                )
-                // Redis value는 JSON으로 직렬화해 저장합니다.
-                .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(valueSerializer)
                 )
                 .disableCachingNullValues();
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        // 상품 검색 결과 캐시는 5분 유지
         cacheConfigurations.put(
                 PRODUCT_SEARCH_V2_CACHE,
-                defaultConfig.entryTtl(Duration.ofMinutes(5))
+                baseConfig.entryTtl(Duration.ofMinutes(5))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
+                                new JacksonJsonRedisSerializer<>(jsonMapper, ProductSearchPageResponse.class)
+                        ))
         );
 
-        // 인기 검색어 조회 결과 캐시는 3분 유지
+        JavaType popularKeywordListType = jsonMapper.getTypeFactory()
+                .constructCollectionType(List.class, PopularKeywordResponse.class);
+
         cacheConfigurations.put(
                 POPULAR_KEYWORD_CACHE,
-                defaultConfig.entryTtl(Duration.ofMinutes(3))
+                baseConfig.entryTtl(Duration.ofMinutes(3))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
+                                new JacksonJsonRedisSerializer<>(jsonMapper, popularKeywordListType)
+                        ))
+        );
+
+        RedisCacheConfiguration defaultConfig = baseConfig.serializeValuesWith(
+                RedisSerializationContext.SerializationPair.fromSerializer(
+                        new GenericJacksonJsonRedisSerializer(jsonMapper)
+                )
         );
 
         return RedisCacheManager.builder(connectionFactory)

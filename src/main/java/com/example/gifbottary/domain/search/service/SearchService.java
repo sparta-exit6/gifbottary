@@ -281,7 +281,7 @@ public class SearchService {
                 Duration.ofMinutes(popularSearchProperties.getDedupeTtlMinutes()));
 
 
-        if (Boolean.TRUE.equals(acquired)) {
+        if (!Boolean.TRUE.equals(acquired)) {
             return;
         }
 
