@@ -7,7 +7,7 @@ const WS_ENDPOINT = ((window.location.protocol === "https:") ? "wss://" : "ws://
 const API = {
     createChatRoom: "/api/v1/chatrooms",
     chatRooms: "/api/v1/chatrooms",
-    messages: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}/messages?roomId=${chatRoomId}`,
+    messages: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}/messages`,
     readMessages: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}/messages/read`,
     leaveChatRoom: (chatRoomId) => `/api/v1/chatrooms/${chatRoomId}/members`,
     me: "/api/v1/auth/me"

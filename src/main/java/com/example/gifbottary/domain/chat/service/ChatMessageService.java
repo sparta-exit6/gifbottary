@@ -72,19 +72,19 @@ public class ChatMessageService {
         return ChatMessageResponse.from(savedMessage);
     }
 
-    public List<ChatMessageResponse> getMessages(ChatMessageListRequest request, Long userId) {
-        validateChatMember(request.roomId(), userId);
+    public List<ChatMessageResponse> getMessages(Long roomId, ChatMessageListRequest request, Long userId) {
+        validateChatMember(roomId, userId);
         Pageable pageable = PageRequest.of(0, request.size());
-        List<ChatMessage> messages = chatMessageRepository.findMessages(request.roomId(), request.lastMessageId(), pageable);
+        List<ChatMessage> messages = chatMessageRepository.findMessages(roomId, request.lastMessageId(), pageable);
 
         return messages.stream()
                 .map(ChatMessageResponse::from)
                 .collect(Collectors.toList());
     }
 
-    public List<ChatMessageResponse> getMissedMessages(ChatMissedMessageRequest request, Long userId) {
-        validateChatMember(request.roomId(), userId);
-        List<ChatMessage> messages = chatMessageRepository.findMissedMessages(request.roomId(), request.lastMessageId());
+    public List<ChatMessageResponse> getMissedMessages(Long roomId, ChatMissedMessageRequest request, Long userId) {
+        validateChatMember(roomId, userId);
+        List<ChatMessage> messages = chatMessageRepository.findMissedMessages(roomId, request.lastMessageId());
 
         return messages.stream()
                 .map(ChatMessageResponse::from)

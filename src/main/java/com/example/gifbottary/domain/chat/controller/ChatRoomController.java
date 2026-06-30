@@ -37,19 +37,21 @@ public class ChatRoomController {
 
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getChatMessages(
+            @PathVariable Long roomId,
             @Valid @ModelAttribute ChatMessageListRequest request,
             @AuthenticationPrincipal User user
     ) {
-        List<ChatMessageResponse> messages = chatMessageService.getMessages(request, user.getId());
+        List<ChatMessageResponse> messages = chatMessageService.getMessages(roomId, request, user.getId());
         return ResponseEntity.ok(ApiResponse.ok(messages));
     }
 
     @GetMapping("/{roomId}/messages/missed")
     public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getMissedMessages(
+            @PathVariable Long roomId,
             @Valid @ModelAttribute ChatMissedMessageRequest request,
             @AuthenticationPrincipal User user
     ) {
-        List<ChatMessageResponse> messages = chatMessageService.getMissedMessages(request, user.getId());
+        List<ChatMessageResponse> messages = chatMessageService.getMissedMessages(roomId, request, user.getId());
         return ResponseEntity.ok(ApiResponse.ok(messages));
     }
 
