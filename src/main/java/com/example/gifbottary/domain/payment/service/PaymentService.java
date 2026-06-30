@@ -52,6 +52,10 @@ public class PaymentService {
 		GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
 			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
 
+		if (sale.countAvailablePins() < request.quantity()) {
+			throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
+		}
+
 		Purchase purchase = Purchase.create(buyer, sale, request.quantity());
 		Purchase savedPurchase = purchaseRepository.save(purchase);
 
