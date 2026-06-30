@@ -2,11 +2,10 @@ package com.example.gifbottary.domain.product.controller;
 
 import com.example.gifbottary.common.response.ApiResponse;
 import com.example.gifbottary.domain.product.dto.request.ProductSearchRequest;
-import com.example.gifbottary.domain.product.dto.response.ProductSummaryResponse;
+import com.example.gifbottary.domain.product.dto.response.ProductSearchPageResponse;
 import com.example.gifbottary.domain.product.service.ProductService;
 import com.example.gifbottary.domain.search.service.SearchService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +36,7 @@ public class ProductV2Controller {
      * v2는 동일한 검색 조건에 대해 캐시를 우선 조회합니다.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<ProductSummaryResponse>>> findProducts(
+    public ResponseEntity<ApiResponse<ProductSearchPageResponse>> findProducts(
             @AuthenticationPrincipal(expression = "id") Long userId,
             @ModelAttribute ProductSearchRequest request,
             @PageableDefault(size = 10) Pageable pageable

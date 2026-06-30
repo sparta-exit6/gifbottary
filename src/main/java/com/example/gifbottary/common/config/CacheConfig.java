@@ -1,15 +1,22 @@
 package com.example.gifbottary.common.config;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 인기 검색어 조회 성능을 높이기 위한 로컬 캐시 설정입니다.
+ * 검색 결과와 인기 검색어 조회 결과를 Redis Remote Cache로 관리하는 설정입니다.
+ * 기존 Caffeine Local Cache 대신 RedisCacheManager를 사용합니다.
  */
 @Configuration
 @EnableCaching
@@ -19,17 +26,41 @@ public class CacheConfig {
     public static final String PRODUCT_SEARCH_V2_CACHE = "productSearchV2";
 
     @Bean
-    public CaffeineCacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-                POPULAR_KEYWORD_CACHE,
-                PRODUCT_SEARCH_V2_CACHE
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        GenericJacksonJsonRedisSerializer valueSerializer =
+                GenericJacksonJsonRedisSerializer.create(builder -> builder
+                        .enableSpringCacheNullValueSupport()
+                        .enableUnsafeDefaultTyping()
+                );
+
+        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
+                // Redis key는 사람이 읽을 수 있는 문자열 형태로 저장합니다.
+                .serializeKeysWith(
+                        RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
+                )
+                // Redis value는 JSON으로 직렬화해 저장합니다.
+                .serializeValuesWith(
+                        RedisSerializationContext.SerializationPair.fromSerializer(valueSerializer)
+                )
+                .disableCachingNullValues();
+
+        Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
+
+        // 상품 검색 결과 캐시는 5분 유지
+        cacheConfigurations.put(
+                PRODUCT_SEARCH_V2_CACHE,
+                defaultConfig.entryTtl(Duration.ofMinutes(5))
         );
 
-        // TTL : 5분
-        cacheManager.setCaffeine(Caffeine.newBuilder()
-                .expireAfterWrite(5, TimeUnit.MINUTES)
-                .maximumSize(1000));
+        // 인기 검색어 조회 결과 캐시는 3분 유지
+        cacheConfigurations.put(
+                POPULAR_KEYWORD_CACHE,
+                defaultConfig.entryTtl(Duration.ofMinutes(3))
+        );
 
-        return cacheManager;
+        return RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(defaultConfig)
+                .withInitialCacheConfigurations(cacheConfigurations)
+                .build();
     }
 }
