@@ -10,10 +10,11 @@ import java.util.List;
  * 판매글 단건 상세 응답 DTO입니다.
  */
 public record ProductDetailResponse(
-        Long saleId,
-        Long productId,
-        Long sellerId,
-        String saleType,
+	        Long saleId,
+	        Long productId,
+	        Long sellerId,
+	        String sellerName,
+	        String saleType,
         String brand,
         String productName,
         LocalDate expireAt,
@@ -27,10 +28,11 @@ public record ProductDetailResponse(
 ) {
     public static ProductDetailResponse from(GifticonSale sale, List<PinDetailResponse> pins) {
         return new ProductDetailResponse(
-                sale.getId(),
-                sale.getProduct().getId(),
-                sale.getSeller().getId(),
-                sale.getSaleType().name(),
+	                sale.getId(),
+	                sale.getProduct().getId(),
+	                sale.getSeller().getId(),
+	                sale.getSeller().getName(),
+	                sale.getSaleType().name(),
                 sale.getProduct().getBrand(),
                 sale.getProduct().getProductName(),
                 sale.getExpireAt(),

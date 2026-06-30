@@ -175,7 +175,8 @@
         document.getElementById("detailBrand").textContent = `브랜드 ${brand}`;
         document.getElementById("detailSalePrice").textContent =
             `판매가 ${Number(product.salePrice || 0).toLocaleString("ko-KR")}원`;
-        document.getElementById("detailSeller").textContent = product.sellerId || "-";
+        document.getElementById("detailSeller").textContent =
+            product.sellerName || product.sellerNickname || product.sellerId || "-";
         document.getElementById("detailStatus").textContent = product.saleStatus || "-";
         document.getElementById("detailExpireAt").textContent = product.expireAt || "-";
         document.getElementById("detailDescription").textContent =

@@ -386,6 +386,7 @@ async function submitGifticon() {
     }
 
     const gifticonName = document.getElementById("gifticonName").value.trim();
+    const brand = document.getElementById("brand").value.trim();
     const originalPrice = document.getElementById("originalPrice").value.trim();
     const salePrice = document.getElementById("salePrice").value.trim();
     const pinNumber = document.getElementById("pinNumber").value.trim();
@@ -394,6 +395,11 @@ async function submitGifticon() {
 
     if (!gifticonName) {
         alert("기프트카드 이름을 입력해주세요.");
+        return;
+    }
+
+    if (!brand) {
+        alert("브랜드를 입력해주세요.");
         return;
     }
 
@@ -434,7 +440,7 @@ async function submitGifticon() {
 
     const request = {
         saleType: "PERSONAL",
-        brand: "테스트 브랜드",
+        brand: brand,
         productName: gifticonName,
         faceValue: Number(originalPrice),
         expireAt: expiredAt,
