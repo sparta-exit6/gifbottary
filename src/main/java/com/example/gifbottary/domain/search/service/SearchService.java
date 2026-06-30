@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -140,11 +141,17 @@ public class SearchService {
     private void saveKeyword(Long userId, String keyword) {
         User user = findUser(userId);
 
-        searchKeywordRepository.findByUser_IdAndKeyword(userId, keyword)
-                .ifPresentOrElse(
-                        SearchKeyword::increaseCount,
-                        () -> saveKeywordWhenAbsent(user, keyword)
-                );
+        int updated = searchKeywordRepository.increaseCount(
+                userId,
+                keyword,
+                LocalDateTime.now()
+        );
+
+        if (updated > 0) {
+            return;
+        }
+
+        saveKeywordWhenAbsent(user, keyword);
     }
 
     /**
@@ -158,8 +165,7 @@ public class SearchService {
             searchKeywordRepository.saveAndFlush(new SearchKeyword(user, keyword));
         } catch (DataIntegrityViolationException exception) {
             // 동시 요청으로 이미 insert 된 경우 조회 후 카운트만 증가시킵니다.
-            searchKeywordRepository.findByUser_IdAndKeyword(user.getId(), keyword)
-                    .ifPresent(SearchKeyword::increaseCount);
+            searchKeywordRepository.increaseCount(user.getId(), keyword, LocalDateTime.now());
         }
     }
 
@@ -173,7 +179,7 @@ public class SearchService {
         try {
             tuples = stringRedisTemplate.opsForZSet()
                     .reverseRangeWithScores(getDailyPopularKey(), 0, limit - 1);
-        }catch (DataAccessException e) {
+        } catch (DataAccessException e) {
             log.warn("Redis 장애로 인기 검색어 조회에 실패했습니다. 빈 리스트를 반환합니다. limit={}", limit, e);
             return List.of();
         }
@@ -267,20 +273,20 @@ public class SearchService {
     private void increasePopularKeywordScore(Long userId, String keyword) {
         String dedupeKey = getDedupeKey(userId, keyword);
 
-        Boolean exists = stringRedisTemplate.hasKey(dedupeKey);
+        Boolean acquired = stringRedisTemplate.opsForValue().setIfAbsent(
+                dedupeKey,
+                "1",
+                Duration.ofMinutes(popularSearchProperties.getDedupeTtlMinutes()));
 
-        if (Boolean.TRUE.equals(exists)) {
+
+        if (Boolean.TRUE.equals(acquired)) {
             return;
         }
 
-        String dailyPopularKey = getDailyPopularKey();
-
         stringRedisTemplate.opsForZSet().incrementScore(
-                dailyPopularKey,
+                getDailyPopularKey(),
                 keyword,
                 popularSearchProperties.getScoreIncrement()
         );
-
-        stringRedisTemplate.opsForValue().set(dedupeKey, "1", Duration.ofMinutes(popularSearchProperties.getDedupeTtlMinutes()));
     }
 }
