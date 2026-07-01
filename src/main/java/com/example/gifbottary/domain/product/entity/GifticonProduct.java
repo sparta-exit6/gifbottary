@@ -38,4 +38,14 @@ public class GifticonProduct  extends BaseEntity {
     public void updateImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+
+    public void updateProductInfo(String productName, Integer faceValue) {
+        if (productName != null && !productName.isBlank()) {
+            this.productName = productName.trim();
+        }
+
+        if (faceValue != null) {
+            this.faceValue = faceValue;
+        }
+    }
 }

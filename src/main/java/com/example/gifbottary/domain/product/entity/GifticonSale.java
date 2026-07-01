@@ -56,6 +56,9 @@ public class GifticonSale extends BaseEntity {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<GifticonPin> pins = new ArrayList<>();
 
@@ -72,9 +75,17 @@ public class GifticonSale extends BaseEntity {
     /**
      * 판매글의 수정 가능한 정보만 갱신합니다.
      */
-    public void updateSaleInfo(Integer salePrice) {
+    public void updateSaleInfo(Integer salePrice, LocalDate expireAt, String description) {
         if (salePrice != null) {
             this.salePrice = salePrice;
+        }
+
+        if (expireAt != null) {
+            this.expireAt = expireAt;
+        }
+
+        if (description != null) {
+            this.description = description.trim();
         }
     }
 
@@ -141,6 +152,11 @@ public class GifticonSale extends BaseEntity {
 
         if (saleStatus == SaleStatus.ON_SALE && this.stock > 0) {
             this.saleStatus = SaleStatus.ON_SALE;
+            return;
+        }
+
+        if (saleStatus == SaleStatus.SOLD_OUT && this.stock == 0) {
+            this.saleStatus = SaleStatus.SOLD_OUT;
             return;
         }
 

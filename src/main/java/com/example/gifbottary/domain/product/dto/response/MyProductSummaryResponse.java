@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.product.dto.response;
 import com.example.gifbottary.domain.product.enums.SaleStatus;
 import com.example.gifbottary.domain.product.enums.SaleType;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record MyProductSummaryResponse(
@@ -13,6 +14,7 @@ public record MyProductSummaryResponse(
         String productName,
         Integer salePrice,
         SaleStatus saleStatus,
+        LocalDate expireAt,
         LocalDateTime createdAt
 ) {
 }

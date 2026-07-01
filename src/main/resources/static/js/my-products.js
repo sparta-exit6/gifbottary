@@ -226,9 +226,6 @@ function createMyProductCard(product) {
                     상태 변경
                 </button>
 
-                <button class="delete-product-btn" onclick="deleteMyProduct(${product.saleId})">
-                    삭제하기
-                </button>
             </div>
         </article>
     `;

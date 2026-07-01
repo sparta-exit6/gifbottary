@@ -21,6 +21,7 @@ public record ProductCreateRequest(
         @NotNull @Min(1) Integer salePrice,
         String pinNumber,
         List<String> pinNumbers,
+        String description,
         String imageUrl
 ) {
 }

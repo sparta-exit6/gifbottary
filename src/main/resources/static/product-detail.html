@@ -41,6 +41,7 @@
             <div class="detail-meta">
                 <p><strong>판매자</strong> <span id="detailSeller">-</span></p>
                 <p><strong>상품 상태</strong> <span id="detailStatus">판매중</span></p>
+                <p><strong>재고</strong> <span id="detailStock">-</span></p>
                 <p><strong>유효기간</strong> <span id="detailExpireAt">2026.07.30</span></p>
             </div>
 
@@ -178,9 +179,11 @@
         document.getElementById("detailSeller").textContent =
             product.sellerName || product.sellerNickname || product.sellerId || "-";
         document.getElementById("detailStatus").textContent = product.saleStatus || "-";
+        document.getElementById("detailStock").textContent =
+            `${Number(product.stock || 0).toLocaleString("ko-KR")}개`;
         document.getElementById("detailExpireAt").textContent = product.expireAt || "-";
         document.getElementById("detailDescription").textContent =
-            `${product.productName || "기프티콘"} 기프티콘입니다. 구매 전 문의가 필요하면 아래 문의하기 버튼을 눌러주세요.`;
+            product.description || `${product.productName || "기프티콘"} 기프티콘입니다. 구매 전 문의가 필요하면 아래 문의하기 버튼을 눌러주세요.`;
 
         document.getElementById("chatButton").onclick = () => createChatRoom(product.saleId);
         document.getElementById("buyButton").onclick = () => openPaymentModal({

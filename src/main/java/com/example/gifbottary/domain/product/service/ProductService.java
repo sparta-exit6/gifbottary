@@ -62,6 +62,7 @@ public class ProductService {
                 request.expireAt()
         );
 
+        sale.updateSaleInfo(null, null, request.description());
         appendPins(sale, extractPinNumbers(request.pinNumber(), request.pinNumbers()), request.saleType());
         sale.synchronizeStockAndStatus();
 
@@ -119,17 +120,32 @@ public class ProductService {
         if (sale.getSaleStatus() == SaleStatus.CANCELLED) {
             throw new ServiceException(ErrorCode.INVALID_SALE_STATUS);
         }
-        sale.updateSaleInfo(request.salePrice());
+
+        validateUpdateRequest(request);
+
+        sale.getProduct().updateProductInfo(request.productName(), request.faceValue());
+        sale.updateSaleInfo(request.salePrice(), request.expireAt(), request.description());
 
         if (request.imageUrl() != null && !request.imageUrl().isBlank()) {
             sale.getProduct().updateImageUrl(request.imageUrl().trim());
         }
 
         if (request.pinNumbers() != null && !request.pinNumbers().isEmpty()) {
+            if (sale.getSaleType() != SaleType.PLATFORM || !isAdmin(sale.getSeller())) {
+                throw new ServiceException(ErrorCode.FORBIDDEN);
+            }
             appendPins(sale, request.pinNumbers(), sale.getSaleType());
         }
 
         sale.synchronizeStockAndStatus();
+
+        if (request.saleStatus() != null) {
+            try {
+                sale.changeSaleStatus(request.saleStatus());
+            } catch (IllegalStateException exception) {
+                throw new ServiceException(ErrorCode.INVALID_SALE_STATUS);
+            }
+        }
 
         try {
             GifticonSale saved = gifticonSaleRepository.saveAndFlush(sale);
@@ -212,7 +228,7 @@ public class ProductService {
         if (request.expireAt() == null || request.expireAt().isBefore(LocalDate.now())) {
             throw new ServiceException(ErrorCode.INVALID_EXPIRE_AT);
         }
-        if (request.salePrice() == null || request.salePrice() < 0) {
+        if (request.salePrice() == null || request.salePrice() < 1) {
             throw new ServiceException(ErrorCode.INVALID_PRICE);
         }
         if (request.saleType() == SaleType.PLATFORM && !isAdmin(seller)) {
@@ -225,6 +241,20 @@ public class ProductService {
             if (isBlank(request.brand()) || isBlank(request.productName()) || request.faceValue() == null) {
                 throw new ServiceException(ErrorCode.PRODUCT_NOT_FOUND);
             }
+        }
+    }
+
+    private void validateUpdateRequest(ProductUpdateRequest request) {
+        if (request.expireAt() != null && request.expireAt().isBefore(LocalDate.now())) {
+            throw new ServiceException(ErrorCode.INVALID_EXPIRE_AT);
+        }
+
+        if (request.salePrice() != null && request.salePrice() < 1) {
+            throw new ServiceException(ErrorCode.INVALID_PRICE);
+        }
+
+        if (request.faceValue() != null && request.faceValue() < 1) {
+            throw new ServiceException(ErrorCode.INVALID_PRICE);
         }
     }
 
@@ -269,6 +299,11 @@ public class ProductService {
             String encryptedPin = pinEncryptor.encrypt(rawPin);
 
             GifticonPin gifticonPin = new GifticonPin(encryptedPin, pinHash);
+
+            if (saleType == SaleType.PLATFORM && isAdmin(sale.getSeller())) {
+                gifticonPin.validatePin();
+            }
+
             sale.addPin(gifticonPin);
         }
     }

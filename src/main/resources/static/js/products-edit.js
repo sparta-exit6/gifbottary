@@ -1,5 +1,6 @@
 let editSaleId = null;
 let originalSaleStatus = null;
+let currentEditSaleType = null;
 
 const PRODUCT_EDIT_API = {
     detail: (saleId) => `/api/v1/products/${saleId}`,
@@ -69,11 +70,12 @@ function renderSampleEditProduct() {
     renderEditProduct({
         saleId: editSaleId,
         productName: "스타벅스 아메리카노 Tall",
-        originalPrice: 5000,
+        faceValue: 5000,
         salePrice: 4300,
-        expiredAt: "2026-07-30",
-        saleStatus: "SELLING",
+        expireAt: "2026-07-30",
+        saleStatus: "ON_SALE",
         description: "스타벅스 아메리카노 Tall 기프티콘입니다.",
+        saleType: "PERSONAL",
         imageUrl: null,
         imageText: "STARBUCKS"
     });
@@ -84,7 +86,7 @@ function renderEditProduct(product) {
         product.productName || product.name || product.gifticonName || "";
 
     document.getElementById("editOriginalPrice").value =
-        product.originalPrice || product.price || "";
+        product.faceValue || product.originalPrice || product.price || "";
 
     document.getElementById("editSalePrice").value =
         product.salePrice || "";
@@ -93,12 +95,18 @@ function renderEditProduct(product) {
         formatDateInput(product.expiredAt || product.expireAt || product.expirationDate);
 
     document.getElementById("editSaleStatus").value =
-        product.saleStatus || product.status || "SELLING";
+        product.saleStatus || product.status || "ON_SALE";
 
     document.getElementById("editDescription").value =
         product.description || "";
 
-    originalSaleStatus = product.saleStatus || product.status || "SELLING";
+    originalSaleStatus = product.saleStatus || product.status || "ON_SALE";
+    currentEditSaleType = product.saleType || product.type || null;
+
+    const additionalPinsRow = document.getElementById("editAdditionalPinsRow");
+    if (additionalPinsRow) {
+        additionalPinsRow.style.display = currentEditSaleType === "PLATFORM" ? "block" : "none";
+    }
 
     const preview = document.getElementById("editImagePreview");
 
@@ -135,7 +143,13 @@ async function submitProductEdit() {
     const expiredAt = document.getElementById("editExpiredAt").value;
     const saleStatus = document.getElementById("editSaleStatus").value;
     const description = document.getElementById("editDescription").value.trim();
-    const image = document.getElementById("editProductImage").files[0];
+    const additionalPinsInput = document.getElementById("editAdditionalPins");
+    const additionalPins = additionalPinsInput
+        ? additionalPinsInput.value
+            .split(/[\n,]/)
+            .map((pin) => pin.trim())
+            .filter(Boolean)
+        : [];
 
     if (!productName) {
         alert("기프트카드 이름을 입력해주세요.");
@@ -147,8 +161,18 @@ async function submitProductEdit() {
         return;
     }
 
+    if (Number(originalPrice) < 1) {
+        alert("정가는 1원 이상이어야 합니다.");
+        return;
+    }
+
     if (!salePrice) {
         alert("판매가를 입력해주세요.");
+        return;
+    }
+
+    if (Number(salePrice) < 1) {
+        alert("판매가는 1원 이상이어야 합니다.");
         return;
     }
 
@@ -167,24 +191,25 @@ async function submitProductEdit() {
         return;
     }
 
-    const formData = new FormData();
-    formData.append("productName", productName);
-    formData.append("originalPrice", originalPrice);
-    formData.append("salePrice", salePrice);
-    formData.append("expiredAt", expiredAt);
-    formData.append("description", description);
-
-    if (image) {
-        formData.append("image", image);
-    }
+    const request = {
+        productName,
+        faceValue: Number(originalPrice),
+        salePrice: Number(salePrice),
+        expireAt: expiredAt,
+        description,
+        saleStatus,
+        imageUrl: null,
+        pinNumbers: currentEditSaleType === "PLATFORM" && additionalPins.length > 0 ? additionalPins : null
+    };
 
     try {
         const response = await fetch(PRODUCT_EDIT_API.update(editSaleId), {
             method: "PATCH",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             },
-            body: formData
+            body: JSON.stringify(request)
         });
 
         const result = await response.json().catch(() => null);
@@ -192,10 +217,6 @@ async function submitProductEdit() {
         if (!response.ok || result?.success === false) {
             alert(result?.message || "상품 수정에 실패했습니다.");
             return;
-        }
-
-        if (saleStatus !== originalSaleStatus) {
-            await updateProductStatus(saleStatus);
         }
 
         alert("상품이 수정되었습니다.");
@@ -207,27 +228,6 @@ async function submitProductEdit() {
         // API 연결 전 화면 확인용 처리
         alert("상품이 수정되었습니다. API 연결 전 예시 처리입니다.");
         location.href = "./my-products.html";
-    }
-}
-
-async function updateProductStatus(status) {
-    const token = getEditToken();
-
-    const response = await fetch(PRODUCT_EDIT_API.changeStatus(editSaleId), {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            status: status
-        })
-    });
-
-    const result = await response.json().catch(() => null);
-
-    if (!response.ok || result?.success === false) {
-        throw new Error(result?.message || "판매 상태 변경 실패");
     }
 }
 

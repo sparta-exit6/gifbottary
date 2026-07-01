@@ -53,12 +53,12 @@
 
             <div class="edit-form-row">
                 <label for="editOriginalPrice">정가</label>
-                <input id="editOriginalPrice" type="number" placeholder="정가를 입력하세요">
+                <input id="editOriginalPrice" type="number" min="1" step="1" placeholder="정가를 입력하세요">
             </div>
 
             <div class="edit-form-row">
                 <label for="editSalePrice">판매가</label>
-                <input id="editSalePrice" type="number" placeholder="판매가를 입력하세요">
+                <input id="editSalePrice" type="number" min="1" step="1" placeholder="판매가를 입력하세요">
             </div>
 
             <div class="edit-form-row">
@@ -69,15 +69,21 @@
             <div class="edit-form-row">
                 <label for="editSaleStatus">판매 상태</label>
                 <select id="editSaleStatus">
-                    <option value="SELLING">판매중</option>
+                    <option value="ON_SALE">판매중</option>
+                    <option value="PENDING_REVIEW">검수전</option>
                     <option value="SOLD_OUT">판매완료</option>
-                    <option value="EXPIRED">기간만료</option>
+                    <option value="CANCELLED">판매취소</option>
                 </select>
             </div>
 
             <div class="edit-form-row">
                 <label for="editDescription">상세 정보</label>
                 <textarea id="editDescription" placeholder="상세 정보를 입력하세요"></textarea>
+            </div>
+
+            <div class="edit-form-row" id="editAdditionalPinsRow" style="display: none;">
+                <label for="editAdditionalPins">추가 핀번호</label>
+                <textarea id="editAdditionalPins" placeholder="관리자 플랫폼 상품만 추가 등록할 핀번호를 줄바꿈 또는 쉼표로 입력하세요"></textarea>
             </div>
 
             <div class="edit-button-area">
@@ -91,6 +97,6 @@
 </main>
 
 <script src="./js/app.js"></script>
-<script src="./js/product-edit.js"></script>
+<script src="./js/products-edit.js"></script>
 </body>
 </html>
