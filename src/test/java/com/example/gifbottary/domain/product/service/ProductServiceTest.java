@@ -262,7 +262,8 @@ class ProductServiceTest {
         given(gifticonProductRepository.findByBrandAndProductName("스타벅스", "아메리카노 T")).willReturn(Optional.empty());
         given(gifticonProductRepository.save(any(GifticonProduct.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(pinEncryptor.hash("1111-2222-3333")).willReturn("pin-hash");
-        given(gifticonPinRepository.existsByPinHash("pin-hash")).willReturn(true);
+        given(gifticonPinRepository.findExistingPinHashes(List.of("pin-hash")))
+                .willReturn(List.of("pin-hash"));
 
         ProductCreateRequest request = new ProductCreateRequest(
                 null,
@@ -294,7 +295,8 @@ class ProductServiceTest {
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(pinEncryptor.hash("1111-2222-3333")).willReturn("pin-hash");
         given(pinEncryptor.encrypt("1111-2222-3333")).willReturn("encrypted-pin");
-        given(gifticonPinRepository.existsByPinHash("pin-hash")).willReturn(false);
+        given(gifticonPinRepository.findExistingPinHashes(List.of("pin-hash")))
+                .willReturn(List.of());
         given(gifticonSaleRepository.saveAndFlush(any(GifticonSale.class)))
                 .willThrow(new DataIntegrityViolationException("Duplicate entry for pin_hash"));
 
