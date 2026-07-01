@@ -51,7 +51,7 @@ public class PaymentService {
 	public PaymentCreateResponse createPayment(Long buyerId, PaymentCreateRequest request) {
 		User buyer = entityManager.getReference(User.class, buyerId);
 
-		GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
+		GifticonSale sale = gifticonSaleRepository.findWithLockById(request.saleId())
 			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
 
 		if (sale.countAvailablePins() < request.quantity()) {
@@ -82,6 +82,8 @@ public class PaymentService {
 		}
 
 		Purchase purchase = payment.getPurchase();
+		GifticonSale sale = gifticonSaleRepository.findWithLockById(purchase.getSale().getId())
+			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
 
 		PortOnePaymentResponse portOnePayment = portOneClient.getPayment(payment.getPortOnePaymentId());
 		validatePortOnePayment(payment, portOnePayment);
@@ -89,12 +91,12 @@ public class PaymentService {
 		payment.complete();
 		purchase.markPaid();
 
-		if (purchase.getSale().getSaleType() == SaleType.PERSONAL) {
+		if (sale.getSaleType() == SaleType.PERSONAL) {
 			purchase.confirmPersonalPurchase();
 		}
 
 		// 결제 완료시 재고 차감
-		purchase.getSale().sellPins(purchase.getQuantity());
+		sale.sellPins(purchase.getQuantity());
 
 		return PaymentConfirmResponse.from(payment);
 	}
