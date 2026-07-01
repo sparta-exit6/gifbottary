@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -146,7 +147,7 @@ public class ProductService {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
 
         List<GifticonPin> pins = sale.getPins().stream()
-                .sorted((left, right) -> Long.compare(left.getId(), right.getId()))
+                .sorted(Comparator.comparingLong(GifticonPin::getId))
                 .toList();
 
         return ProductPinValidationResponse.from(sale, pins);
@@ -325,7 +326,7 @@ public class ProductService {
 
     private ProductDetailResponse toDetailResponse(GifticonSale sale) {
         List<PinDetailResponse> pinResponses = sale.getPins().stream()
-                .sorted((left, right) -> Long.compare(left.getId(), right.getId()))
+                .sorted(Comparator.comparingLong(GifticonPin::getId))
                 .map(PinDetailResponse::from)
                 .toList();
 

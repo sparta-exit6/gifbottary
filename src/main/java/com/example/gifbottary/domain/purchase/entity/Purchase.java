@@ -157,10 +157,6 @@ public class Purchase extends BaseEntity {
         return buyer.getId().equals(userId);
     }
 
-    public boolean isConfirmed() {
-        return this.purchaseStatus == PurchaseStatus.CONFIRMED;
-    }
-
     /**
      * 핀이 아직 마스킹 상태인지 확인합니다.
      */
@@ -171,6 +167,12 @@ public class Purchase extends BaseEntity {
     private static void validateQuantity(int quantity) {
         if (quantity < 1) {
             throw new ServiceException(ErrorCode.INVALID_PURCHASE_QUANTITY);
+        }
+    }
+
+    public void validateOwner(Long userId) {
+        if (!buyer.getId().equals(userId)) {
+            throw new ServiceException(ErrorCode.PURCHASE_OWNERSHIP_MISMATCH);
         }
     }
 }
