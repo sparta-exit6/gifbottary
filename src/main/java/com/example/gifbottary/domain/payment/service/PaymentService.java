@@ -26,11 +26,13 @@ import com.example.gifbottary.infra.portone.PortOneClient;
 import com.example.gifbottary.infra.portone.dto.PortOnePaymentResponse;
 
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class PaymentService {
 
 	private final PaymentRepository paymentRepository;
@@ -73,8 +75,7 @@ public class PaymentService {
 	 */
 	@Transactional
 	public PaymentConfirmResponse confirmPayment(PaymentConfirmRequest request) {
-		Payment payment = paymentRepository.findByPortOnePaymentId(request.portOnePaymentId())
-			.orElseThrow(() -> new ServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+		Payment payment = findPaymentForConfirm(request);
 
 		if (payment.getStatus() != PaymentStatus.READY) {
 			throw new ServiceException(ErrorCode.CONFLICT);
@@ -82,7 +83,7 @@ public class PaymentService {
 
 		Purchase purchase = payment.getPurchase();
 
-		PortOnePaymentResponse portOnePayment = portOneClient.getPayment(request.portOnePaymentId());
+		PortOnePaymentResponse portOnePayment = portOneClient.getPayment(payment.getPortOnePaymentId());
 		validatePortOnePayment(payment, portOnePayment);
 
 		payment.complete();
@@ -96,6 +97,35 @@ public class PaymentService {
 		purchase.getSale().sellPins(purchase.getQuantity());
 
 		return PaymentConfirmResponse.from(payment);
+	}
+
+	private Payment findPaymentForConfirm(PaymentConfirmRequest request) {
+		log.info(
+			"Confirm payment request. paymentId={}, purchaseId={}, portOnePaymentId={}",
+			request.paymentId(),
+			request.purchaseId(),
+			request.portOnePaymentId()
+		);
+
+		return paymentRepository.findByPortOnePaymentId(request.portOnePaymentId())
+			.or(() -> {
+				if (request.paymentId() == null) {
+					return java.util.Optional.empty();
+				}
+
+				return paymentRepository.findById(request.paymentId());
+			})
+			.or(() -> {
+				if (request.purchaseId() == null) {
+					return java.util.Optional.empty();
+				}
+
+				return paymentRepository.findByPurchaseId(request.purchaseId());
+			})
+			.orElseThrow(() -> new ServiceException(
+				ErrorCode.PAYMENT_NOT_FOUND,
+				"결제 정보를 찾을 수 없습니다. 결제 생성 응답의 paymentId, purchaseId, portOnePaymentId를 확인해주세요."
+			));
 	}
 
 	private void validatePortOnePayment(Payment payment, PortOnePaymentResponse portOnePayment) {

@@ -187,10 +187,19 @@ async function requestPayment() {
             return;
         }
 
-        const paymentData = createResult.data;
-        const paymentId = paymentData?.portOnePaymentId || paymentData?.portonePaymentId;
+        const paymentData = createResult.data?.data || createResult.data;
+        console.log("Payment created.", JSON.stringify(paymentData));
 
-        if (!paymentId) {
+        const internalPaymentId = paymentData?.paymentId
+            || paymentData?.id
+            || paymentData?.payment_id;
+        const purchaseId = paymentData?.purchaseId
+            || paymentData?.purchase_id;
+        const portOnePaymentId = paymentData?.portOnePaymentId
+            || paymentData?.portonePaymentId
+            || paymentData?.port_one_payment_id;
+
+        if (!portOnePaymentId) {
             console.error("Payment create response does not contain portOnePaymentId.", createResult);
             alert("결제 ID를 찾을 수 없습니다.");
             return;
@@ -214,7 +223,7 @@ async function requestPayment() {
         const portOneResponse = await PortOne.requestPayment({
             storeId: configResult.data.storeId,
             channelKey: configResult.data.channelKey,
-            paymentId: paymentId,
+            paymentId: portOnePaymentId,
             orderName: selectedPaymentProduct.productName,
             totalAmount: paymentAmount,
             currency: "CURRENCY_KRW",
@@ -226,12 +235,18 @@ async function requestPayment() {
             }
         });
 
+        console.log("PortOne response.", JSON.stringify(portOneResponse));
+
         if (portOneResponse.code) {
             alert("결제 실패: " + portOneResponse.message);
             return;
         }
 
-        await confirmPayment(paymentId);
+        const confirmedPortOnePaymentId = portOneResponse.paymentId
+            || portOneResponse.id
+            || portOnePaymentId;
+
+        await confirmPayment(internalPaymentId, purchaseId, confirmedPortOnePaymentId);
 
     } catch (error) {
         console.error(error);
@@ -239,8 +254,15 @@ async function requestPayment() {
     }
 }
 
-async function confirmPayment(portOnePaymentId) {
+async function confirmPayment(paymentId, purchaseId, portOnePaymentId) {
     const token = getPaymentToken();
+    const confirmRequest = {
+        paymentId: paymentId ? Number(paymentId) : null,
+        purchaseId: purchaseId ? Number(purchaseId) : null,
+        portOnePaymentId: portOnePaymentId
+    };
+
+    console.log("Confirm payment.", JSON.stringify(confirmRequest));
 
     const response = await fetch(PAYMENT_API.confirmPayment, {
         method: "POST",
@@ -248,9 +270,7 @@ async function confirmPayment(portOnePaymentId) {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-            portOnePaymentId: portOnePaymentId
-        })
+        body: JSON.stringify(confirmRequest)
     });
 
     const result = await response.json().catch(() => null);

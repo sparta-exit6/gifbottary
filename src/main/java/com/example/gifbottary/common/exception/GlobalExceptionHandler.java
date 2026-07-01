@@ -21,9 +21,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<ApiResponse<Void>> handleServiceException(ServiceException ex) {
         ErrorCode errorCode = ex.getErrorCode();
+        String message = ex.getCustomMessage() != null ? ex.getCustomMessage() : errorCode.getMessage();
+
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(ApiResponse.error(errorCode));
+                .body(ApiResponse.error(errorCode, message));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
