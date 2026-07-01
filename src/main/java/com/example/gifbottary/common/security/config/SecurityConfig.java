@@ -30,29 +30,44 @@ public class SecurityConfig {
                 )
                 .anonymous(anonymous -> anonymous.principal(new AnonymousPrincipal()))
                 .authorizeHttpRequests(auth -> auth
+                        // 정적 프론트 페이지
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/*.html",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico"
+                        ).permitAll()
+
+                        // 인증 API 중 공개 API
                         .requestMatchers(
                                 "/api/v1/auth/signup",
                                 "/api/v1/auth/login",
                                 "/ws/**",
                                 "/portone-test.html"
                         ).permitAll()
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/v1/products",
-                                "/api/v1/products/*",
-                                "/api/v1/search/products",
-                                "/api/v1/search/popular-keywords",
-                                "/api/v2/search/popular-keywords",
-                                "/api/v1/payments/portone"
-                        ).permitAll()
+
+                        // 내 상품 목록 조회는 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/api/v1/products/me").authenticated()
+
+                        // 공개 조회 API
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/products",
                                 "/api/v1/products/*",
                                 "/api/v2/products",
+                                "/api/v1/search/products",
                                 "/api/v1/search/popular-keywords",
                                 "/api/v2/search/popular-keywords"
                         ).permitAll()
+
+                        // PortOne Webhook이 POST라면 공개 필요
+                        .requestMatchers(HttpMethod.POST, "/api/v1/payments/portone").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/payments/portone").permitAll()
+
+                        // 그 외 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

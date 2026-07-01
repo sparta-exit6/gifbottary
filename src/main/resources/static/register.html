@@ -47,12 +47,12 @@
 
             <div class="register-form-row">
                 <label for="originalPrice">금액</label>
-                <input id="originalPrice" type="number" placeholder="입력하세요">
+                <input id="originalPrice" type="number" min="1" step="1" placeholder="입력하세요" oninput="preventNegativePriceInput(this)">
             </div>
 
             <div class="register-form-row">
                 <label for="salePrice">판매가</label>
-                <input id="salePrice" type="number" placeholder="입력하세요">
+                <input id="salePrice" type="number" min="1" step="1" placeholder="입력하세요" oninput="preventNegativePriceInput(this)">
             </div>
 
             <div class="register-form-row">

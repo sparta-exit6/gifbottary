@@ -124,8 +124,100 @@ function renderProducts(targetId, products) {
     `).join("");
 }
 
-renderProducts("personalProductList", personalProducts);
-renderProducts("adminProductList", adminProducts);
+document.addEventListener("DOMContentLoaded", () => {
+    updateHeaderByAuthState();
+    loadMainProducts();
+});
+
+function updateHeaderByAuthState() {
+    const isLoggedIn = Boolean(localStorage.getItem("accessToken"));
+    const buttons = document.querySelectorAll("button");
+
+    buttons.forEach(button => {
+        const text = button.textContent.trim();
+        const onclick = button.getAttribute("onclick") || "";
+
+        if (text === "회원가입" || text === "로그인" || onclick.includes("signup.html") || onclick.includes("login.html")) {
+            button.style.display = isLoggedIn ? "none" : "";
+        }
+
+        if (text === "로그아웃" || onclick.includes("logout()")) {
+            button.style.display = isLoggedIn ? "" : "none";
+        }
+    });
+}
+
+async function loadMainProducts() {
+    try {
+        const response = await fetch("/api/v1/products");
+        const result = await response.json();
+
+        if (!response.ok || result.success === false) {
+            renderSampleProducts();
+            return;
+        }
+
+        const products = normalizeMainProducts(result.data);
+        const personal = products.filter(product => product.saleType === "PERSONAL");
+        const platform = products.filter(product => product.saleType === "PLATFORM");
+
+        renderProducts("personalProductList", personal);
+        renderProducts("adminProductList", platform);
+    } catch (error) {
+        console.error(error);
+        renderSampleProducts();
+    }
+}
+
+function normalizeMainProducts(data) {
+    const content = Array.isArray(data) ? data : data?.content || [];
+
+    return content.map(product => ({
+        id: product.saleId,
+        saleType: product.saleType,
+        name: product.productName,
+        originPrice: `정가 ${formatMainNumber(product.faceValue)}원`,
+        salePrice: `판매가 ${formatMainNumber(product.salePrice)}원`,
+        imageText: product.brand || "GIFT CARD",
+        bgClass: getMainProductBgClass(product.brand),
+        icon: product.saleType === "PLATFORM" ? "🛒" : "♡"
+    }));
+}
+
+function renderSampleProducts() {
+    renderProducts("personalProductList", personalProducts);
+    renderProducts("adminProductList", adminProducts);
+}
+
+function formatMainNumber(value) {
+    return Number(value || 0).toLocaleString("ko-KR");
+}
+
+function getMainProductBgClass(brand) {
+    const normalizedBrand = String(brand || "").toLowerCase();
+
+    if (normalizedBrand.includes("starbucks") || normalizedBrand.includes("스타벅스")) {
+        return "bg-starbucks";
+    }
+
+    if (normalizedBrand.includes("bhc")) {
+        return "bg-bhc";
+    }
+
+    if (normalizedBrand.includes("olive") || normalizedBrand.includes("올리브")) {
+        return "bg-olive";
+    }
+
+    if (normalizedBrand.includes("cu")) {
+        return "bg-cu";
+    }
+
+    if (normalizedBrand.includes("mega") || normalizedBrand.includes("메가박스")) {
+        return "bg-megabox";
+    }
+
+    return "bg-money";
+}
 
 async function signup() {
     const email = document.getElementById("signupEmail").value.trim();
@@ -274,6 +366,16 @@ function previewImage(event) {
     reader.readAsDataURL(file);
 }
 
+function preventNegativePriceInput(input) {
+    if (input.value === "") {
+        return;
+    }
+
+    if (Number(input.value) < 1) {
+        input.value = "";
+    }
+}
+
 async function submitGifticon() {
     const token = localStorage.getItem("accessToken");
 
@@ -289,7 +391,6 @@ async function submitGifticon() {
     const pinNumber = document.getElementById("pinNumber").value.trim();
     const expiredAt = document.getElementById("expiredAt").value;
     const description = document.getElementById("description").value.trim();
-    const image = document.getElementById("gifticonImage").files[0];
 
     if (!gifticonName) {
         alert("기프트카드 이름을 입력해주세요.");
@@ -301,8 +402,18 @@ async function submitGifticon() {
         return;
     }
 
+    if (Number(originalPrice) < 1) {
+        alert("금액은 1원 이상 입력해주세요.");
+        return;
+    }
+
     if (!salePrice) {
         alert("판매가를 입력해주세요.");
+        return;
+    }
+
+    if (Number(salePrice) < 1) {
+        alert("판매가는 1원 이상 입력해주세요.");
         return;
     }
 
@@ -321,26 +432,25 @@ async function submitGifticon() {
         return;
     }
 
-    const formData = new FormData();
-
-    formData.append("gifticonName", gifticonName);
-    formData.append("originalPrice", originalPrice);
-    formData.append("salePrice", salePrice);
-    formData.append("pinNumber", pinNumber);
-    formData.append("expiredAt", expiredAt);
-    formData.append("description", description);
-
-    if (image) {
-        formData.append("image", image);
-    }
+    const request = {
+        saleType: "PERSONAL",
+        brand: "테스트 브랜드",
+        productName: gifticonName,
+        faceValue: Number(originalPrice),
+        expireAt: expiredAt,
+        salePrice: Number(salePrice),
+        pinNumber: pinNumber,
+        imageUrl: null
+    };
 
     try {
         const response = await fetch("/api/v1/products", {
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             },
-            body: formData
+            body: JSON.stringify(request)
         });
 
         const result = await response.json();
@@ -405,4 +515,3 @@ function moveMainSearchPage() {
 
     location.href = `./search.html?keyword=${encodeURIComponent(keyword)}`;
 }
-

@@ -37,13 +37,4 @@ public class SearchKeyword extends BaseEntity {
         this.searchCount = 1;
         this.lastSearchedAt = LocalDateTime.now();
     }
-
-    public void increaseCount() {
-        this.searchCount++;
-        this.lastSearchedAt = LocalDateTime.now();
-    }
-
-    public void refreshLastSearchedAt() {
-        this.lastSearchedAt = LocalDateTime.now();
-    }
 }

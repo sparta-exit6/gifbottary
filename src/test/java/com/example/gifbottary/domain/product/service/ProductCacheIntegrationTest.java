@@ -3,6 +3,7 @@ package com.example.gifbottary.domain.product.service;
 import com.example.gifbottary.common.config.CacheConfig;
 import com.example.gifbottary.common.util.PinEncryptor;
 import com.example.gifbottary.domain.product.dto.request.ProductSearchRequest;
+import com.example.gifbottary.domain.product.dto.response.ProductSearchPageResponse;
 import com.example.gifbottary.domain.product.dto.response.ProductSummaryResponse;
 import com.example.gifbottary.domain.product.enums.SaleStatus;
 import com.example.gifbottary.domain.product.enums.SaleType;
@@ -15,8 +16,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +37,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest(classes = {ProductService.class, CacheConfig.class})
+@SpringBootTest(classes = {ProductService.class, ProductCacheIntegrationTest.ProductCacheTestConfig.class})
 class ProductCacheIntegrationTest {
 
     @Autowired
@@ -87,11 +92,13 @@ class ProductCacheIntegrationTest {
 
         given(gifticonSaleRepository.searchProducts(request, pageable)).willReturn(expected);
 
-        Page<ProductSummaryResponse> first = productService.searchProductsV2(request, pageable);
-        Page<ProductSummaryResponse> second = productService.searchProductsV2(request, pageable);
+        ProductSearchPageResponse first = productService.searchProductsV2(request, pageable);
+        ProductSearchPageResponse second = productService.searchProductsV2(request, pageable);
 
-        assertThat(first.getContent()).hasSize(1);
-        assertThat(second.getContent()).hasSize(1);
+        assertThat(first.content()).hasSize(1);
+        assertThat(second.content()).hasSize(1);
+        assertThat(first.totalElements()).isEqualTo(1L);
+        assertThat(second.totalElements()).isEqualTo(1L);
         verify(gifticonSaleRepository, times(1)).searchProducts(request, pageable);
     }
 
@@ -110,5 +117,15 @@ class ProductCacheIntegrationTest {
 
         verify(gifticonSaleRepository, times(1)).searchProducts(request, firstPage);
         verify(gifticonSaleRepository, times(1)).searchProducts(request, secondPage);
+    }
+
+    @TestConfiguration
+    @EnableCaching
+    static class ProductCacheTestConfig {
+
+        @Bean
+        CacheManager cacheManager() {
+            return new ConcurrentMapCacheManager(CacheConfig.PRODUCT_SEARCH_V2_CACHE);
+        }
     }
 }

@@ -1306,6 +1306,23 @@ button {
     border-bottom-left-radius: 4px;
 }
 
+.message-row.system {
+    justify-content: center;
+    align-items: center;
+    margin: 16px 0;
+}
+
+.system-bubble {
+    background: #f0f4f8;
+    color: #5a6a85;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 999px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
 .message-time {
     font-size: 12px;
     color: #999999;
@@ -1968,6 +1985,11 @@ button {
 .my-product-badge.selling {
     background: #e8f7ee;
     color: #16834a;
+}
+
+.my-product-badge.pending {
+    background: #fff7d6;
+    color: #8a6100;
 }
 
 .my-product-badge.sold-out {
@@ -2907,4 +2929,3 @@ button {
     font-size: 14px;
     margin-bottom: 24px;
 }
-

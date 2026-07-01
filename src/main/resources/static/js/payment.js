@@ -3,10 +3,9 @@ let userPointBalance = 0;
 
 const PAYMENT_API = {
     myInfo: "/api/v1/auth/me",
-
-    // 팀 API가 다르면 이 부분만 바꾸면 됩니다.
     createPayment: "/api/v1/payments",
-    confirmPayment: (portonePaymentId) => `/api/v1/payments/${portonePaymentId}/confirm`
+    portOneConfig: "/api/v1/payments/portone",
+    confirmPayment: "/api/v1/payments/confirm"
 };
 
 function getPaymentToken() {
@@ -163,6 +162,7 @@ async function requestPayment() {
 
     const paymentRequest = {
         saleId: selectedPaymentProduct.saleId,
+        quantity: 1,
         productName: selectedPaymentProduct.productName,
         totalAmount: salePrice,
         pointAmount: pointAmount,
@@ -188,48 +188,73 @@ async function requestPayment() {
         }
 
         const paymentData = createResult.data;
+        const paymentId = paymentData?.portOnePaymentId || paymentData?.portonePaymentId;
 
-        /*
-         * 실제 PortOne 연동 전까지는 아래 confirm API를 바로 호출하는 방식으로 시연할 수 있습니다.
-         * PortOne 결제창을 붙이면 이 위치에서 PortOne.requestPayment()를 호출하고,
-         * 성공 후 confirm API를 호출하면 됩니다.
-         */
+        if (!paymentId) {
+            console.error("Payment create response does not contain portOnePaymentId.", createResult);
+            alert("결제 ID를 찾을 수 없습니다.");
+            return;
+        }
 
-        const portonePaymentId =
-            paymentData?.portonePaymentId ||
-            paymentData?.impUid ||
-            paymentData?.paymentUid ||
-            `demo-${Date.now()}`;
+        const configResponse = await fetch(PAYMENT_API.portOneConfig);
+        const configResult = await configResponse.json();
 
-        await confirmPayment(portonePaymentId);
+        if (!configResponse.ok || configResult.success === false) {
+            alert(configResult.message || "PortOne 설정 조회에 실패했습니다.");
+            return;
+        }
+
+        if (typeof PortOne === "undefined") {
+            alert("PortOne 결제 모듈을 불러오지 못했습니다.");
+            return;
+        }
+
+        const portOneResponse = await PortOne.requestPayment({
+            storeId: configResult.data.storeId,
+            channelKey: configResult.data.channelKey,
+            paymentId: paymentId,
+            orderName: selectedPaymentProduct.productName,
+            totalAmount: cardAmount,
+            currency: "CURRENCY_KRW",
+            payMethod: "CARD",
+            customer: {
+                email: "test@example.com",
+                fullName: "테스트 구매자",
+                phoneNumber: "01012345678"
+            }
+        });
+
+        if (portOneResponse.code) {
+            alert("결제 실패: " + portOneResponse.message);
+            return;
+        }
+
+        await confirmPayment(paymentId);
 
     } catch (error) {
         console.error(error);
-
-        // 백엔드 결제 API 연결 전 화면 확인용
-        alert("결제가 완료되었습니다. API 연결 전 예시 처리입니다.");
-        closePaymentModal();
-        location.href = "./purchases.html";
+        alert("결제 처리 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
     }
 }
 
-async function confirmPayment(portonePaymentId) {
+async function confirmPayment(portOnePaymentId) {
     const token = getPaymentToken();
 
-    const response = await fetch(PAYMENT_API.confirmPayment(portonePaymentId), {
+    const response = await fetch(PAYMENT_API.confirmPayment, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-            portonePaymentId: portonePaymentId
+            portOnePaymentId: portOnePaymentId
         })
     });
 
     const result = await response.json().catch(() => null);
 
     if (!response.ok || result?.success === false) {
+        console.error("Payment confirm failed.", result);
         alert(result?.message || "결제 승인에 실패했습니다.");
         return;
     }

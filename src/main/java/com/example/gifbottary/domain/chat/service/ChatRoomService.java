@@ -14,14 +14,17 @@ import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.product.repository.GifticonSaleRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -35,16 +38,17 @@ public class ChatRoomService {
     private final GifticonSaleRepository gifticonSaleRepository;
     private final UserRepository userRepository;
     private final ChatMessageService chatMessageService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final JsonMapper jsonMapper;
 
     public List<ChatRoomListResponse> getRooms(Long userId) {
         return chatRoomRepository.findRoomListByUserId(userId);
     }
 
     @Transactional
-    public ChatRoomCreateResponse createRoom(ChatRoomCreateRequest request) {
+    public ChatRoomCreateResponse createRoom(ChatRoomCreateRequest request, Long buyerId) {
         // 1. 이미 존재하는 채팅방인지 검증 (존재하면 해당 방 ID 반환)
-        Optional<ChatRoom> existingRoom = chatRoomRepository.findBySaleIdAndBuyerId(request.saleId(), request.buyerId());
+        Optional<ChatRoom> existingRoom = chatRoomRepository.findBySaleIdAndBuyerId(request.saleId(), buyerId);
         if (existingRoom.isPresent()) {
             return new ChatRoomCreateResponse(existingRoom.get().getId());
         }
@@ -52,12 +56,12 @@ public class ChatRoomService {
         // 2. 데이터 조회
         GifticonSale sale = gifticonSaleRepository.findById(request.saleId())
                 .orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
-        User buyer = userRepository.findById(request.buyerId())
+        User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
 
         // 자신이 올린 판매글에 본인이 채팅방을 파는 것은 금지 (비즈니스 로직)
         if (sale.getSeller().getId().equals(buyer.getId())) {
-            //TODO: 본인 판매글에 채팅방 생성 못하게 예외 발생, 추후 리팩토링
+            throw new ServiceException(ErrorCode.CANNOT_CHAT_WITH_SELF);
         }
 
         // 3. 채팅방 생성 및 저장
@@ -69,9 +73,10 @@ public class ChatRoomService {
         ChatMember sellerMember = new ChatMember(savedRoom, sale.getSeller());
         chatMemberRepository.saveAll(List.of(buyerMember, sellerMember));
 
-        // 5. 최초 개설 시스템 메시지 DB 각인 (소켓 연결 시 도배 방지용 정석 위치)
+        // 5. 최초 개설 시스템 메시지 DB 각인 및 Redis Pub/Sub 발행
         String enterMsg = String.format(ENTER_MESSAGE_FORMAT, buyer.getName());
-        chatMessageService.saveSystemMessage(savedRoom.getId(), buyer.getId(), enterMsg);
+        ChatMessageResponse enterResponse = chatMessageService.saveSystemMessage(savedRoom.getId(), buyer.getId(), enterMsg);
+        publishSystemMessage(savedRoom.getId(), enterResponse);
 
         return new ChatRoomCreateResponse(savedRoom.getId());
     }
@@ -88,6 +93,15 @@ public class ChatRoomService {
 
         String leaveMsg = String.format(LEAVE_MESSAGE_FORMAT, user.getName());
         ChatMessageResponse response = chatMessageService.saveSystemMessage(roomId, userId, leaveMsg);
-        messagingTemplate.convertAndSend("/sub/chat/" + roomId, response);
+        publishSystemMessage(roomId, response);
+    }
+
+    private void publishSystemMessage(Long roomId, ChatMessageResponse response) {
+        try {
+            String json = jsonMapper.writeValueAsString(response);
+            stringRedisTemplate.convertAndSend("chat-room:" + roomId, json);
+        } catch (Exception e) {
+            log.error("Redis Pub/Sub 시스템 메시지 발행 실패 - Room: {}", roomId, e);
+        }
     }
 }

@@ -22,6 +22,7 @@ import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,7 @@ public class ProductService {
     private final UserRepository userRepository;
     private final PinEncryptor pinEncryptor;
 
-    @CacheEvict(cacheNames = "productSearchV2", allEntries = true)
+    @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
     @Transactional
     public ProductCreateResponse createProduct(Long sellerId, ProductCreateRequest request) {
         User seller = findUser(sellerId);
@@ -63,8 +64,16 @@ public class ProductService {
         appendPins(sale, extractPinNumbers(request.pinNumber(), request.pinNumbers()), request.saleType());
         sale.synchronizeStockAndStatus();
 
-        GifticonSale savedSale = gifticonSaleRepository.save(sale);
-        return ProductCreateResponse.from(savedSale);
+
+        try {
+            GifticonSale savedSale = gifticonSaleRepository.saveAndFlush(sale);
+            return ProductCreateResponse.from(savedSale);
+        } catch (DataIntegrityViolationException e) {
+            if (isPinConstraintViolation(e)) {
+                throw duplicatedPinException();
+            }
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -96,8 +105,9 @@ public class ProductService {
                     "':size:' + #pageable.pageSize"
     )
     @Transactional(readOnly = true)
-    public Page<ProductSummaryResponse> searchProductsV2(ProductSearchRequest request, Pageable pageable) {
-        return gifticonSaleRepository.searchProducts(request, pageable);
+    public ProductSearchPageResponse searchProductsV2(ProductSearchRequest request, Pageable pageable) {
+        Page<ProductSummaryResponse> page = gifticonSaleRepository.searchProducts(request, pageable);
+        return ProductSearchPageResponse.from(page);
     }
 
     @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
@@ -119,7 +129,16 @@ public class ProductService {
         }
 
         sale.synchronizeStockAndStatus();
-        return toDetailResponse(sale);
+
+        try {
+            GifticonSale saved = gifticonSaleRepository.saveAndFlush(sale);
+            return toDetailResponse(saved);
+        } catch (DataIntegrityViolationException e) {
+            if (isPinConstraintViolation(e)) {
+                throw duplicatedPinException();
+            }
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -232,7 +251,7 @@ public class ProductService {
         for (String rawPin : normalizedPins) {
             String pinHash = pinEncryptor.hash(rawPin);
             if (gifticonPinRepository.existsByPinHash(pinHash)) {
-                throw new ServiceException(ErrorCode.PIN_VALIDATION_FAILED, "이미 사용된 핀번호입니다.");
+                throw duplicatedPinException();
             }
 
             String encryptedPin = pinEncryptor.encrypt(rawPin);
@@ -317,5 +336,32 @@ public class ProductService {
     private User findUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private boolean isPinConstraintViolation(Throwable throwable) {
+        Throwable current = throwable;
+
+        while (current != null) {
+            String message = current.getMessage();
+
+            if (message != null) {
+                String lowerMessage = message.toLowerCase();
+
+                if (lowerMessage.contains("pin_hash") || lowerMessage.contains("gifticon_pin")) {
+                    return true;
+                }
+            }
+
+            current = current.getCause();
+        }
+
+        return false;
+    }
+
+    private ServiceException duplicatedPinException() {
+        return new ServiceException(
+                ErrorCode.PIN_VALIDATION_FAILED,
+                "이미 사용된 핀번호이거나 중복된 핀번호입니다."
+        );
     }
 }
