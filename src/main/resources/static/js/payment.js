@@ -209,12 +209,14 @@ async function requestPayment() {
             return;
         }
 
+        const paymentAmount = paymentData.amount;
+
         const portOneResponse = await PortOne.requestPayment({
             storeId: configResult.data.storeId,
             channelKey: configResult.data.channelKey,
             paymentId: paymentId,
             orderName: selectedPaymentProduct.productName,
-            totalAmount: cardAmount,
+            totalAmount: paymentAmount,
             currency: "CURRENCY_KRW",
             payMethod: "CARD",
             customer: {

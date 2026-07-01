@@ -385,6 +385,15 @@ async function submitGifticon() {
         return;
     }
 
+    let saleType;
+    try {
+        saleType = await resolveSaleTypeByCurrentUser(token);
+    } catch (error) {
+        console.error(error);
+        alert("사용자 정보를 불러오지 못했습니다.");
+        return;
+    }
+
     const gifticonName = document.getElementById("gifticonName").value.trim();
     const brand = document.getElementById("brand").value.trim();
     const originalPrice = document.getElementById("originalPrice").value.trim();
@@ -423,8 +432,18 @@ async function submitGifticon() {
         return;
     }
 
-    if (!pinNumber) {
+    const pinNumbers = pinNumber
+        .split(/\r?\n|,/)
+        .map(pin => pin.trim())
+        .filter(pin => pin.length > 0);
+
+    if (pinNumbers.length === 0) {
         alert("핀 번호를 입력해주세요.");
+        return;
+    }
+
+    if (saleType === "PERSONAL" && pinNumbers.length !== 1) {
+        alert("개인 판매 기프트카드는 핀 번호를 1개만 등록할 수 있습니다.");
         return;
     }
 
@@ -439,7 +458,6 @@ async function submitGifticon() {
     }
 
     try {
-        const saleType = await resolveSaleTypeByCurrentUser(token);
         const request = {
             saleType: saleType,
             brand: brand,
@@ -447,7 +465,8 @@ async function submitGifticon() {
             faceValue: Number(originalPrice),
             expireAt: expiredAt,
             salePrice: Number(salePrice),
-            pinNumber: pinNumber,
+            pinNumber: saleType === "PERSONAL" ? pinNumbers[0] : null,
+            pinNumbers: saleType === "PLATFORM" ? pinNumbers : null,
             imageUrl: null
         };
 

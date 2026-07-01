@@ -227,6 +227,10 @@ function createPurchaseCard(purchase) {
                     상품 조회
                 </button>
 
+                <button class="product-view-btn" onclick="location.href='./purchase-detail.html?purchaseId=${purchase.purchaseId || ""}'">
+                    상세보기
+                </button>
+
                 ${canRequestRefund(purchase)
         ? `<button class="refund-btn" onclick="requestRefund(${purchase.purchaseId})">환불 요청</button>`
         : ""
