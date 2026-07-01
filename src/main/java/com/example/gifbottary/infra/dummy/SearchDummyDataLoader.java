@@ -1,5 +1,7 @@
 package com.example.gifbottary.infra.dummy;
 
+import com.example.gifbottary.common.exception.ErrorCode;
+import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.domain.product.enums.SaleStatus;
 import com.example.gifbottary.domain.product.enums.SaleType;
 import com.example.gifbottary.domain.user.entity.Role;
@@ -61,15 +63,21 @@ public class SearchDummyDataLoader implements ApplicationRunner {
 
     private void validateProperties() {
         if (properties.getSize() < 1) {
-            throw new IllegalArgumentException("dummy.search.size 는 1 이상이어야 합니다.");
+            throw new ServiceException(
+                    ErrorCode.INVALID_DUMMY_DATA_SIZE
+            );
         }
 
         if (properties.getBatchSize() < 1) {
-            throw new IllegalArgumentException("dummy.search.batch-size 는 1 이상이어야 합니다.");
+            throw new ServiceException(
+                    ErrorCode.INVALID_DUMMY_BATCH_SIZE
+            );
         }
 
         if (properties.getProductNamePrefix() == null || properties.getProductNamePrefix().isBlank()) {
-            throw new IllegalArgumentException("dummy.search.product-name-prefix 는 비어 있을 수 없습니다.");
+            throw new ServiceException(
+                    ErrorCode.INVALID_DUMMY_PRODUCT_NAME_PREFIX
+            );
         }
     }
 

@@ -1,7 +1,8 @@
 package com.example.gifbottary.domain.purchase.entity;
 
+import com.example.gifbottary.common.exception.ErrorCode;
+import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.common.entity.BaseEntity;
-import com.example.gifbottary.domain.product.enums.SaleType;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.product.entity.GifticonSale;
 import com.example.gifbottary.domain.purchase.enums.PinStatus;
@@ -123,9 +124,9 @@ public class Purchase extends BaseEntity {
      */
     public void confirmPersonalPurchase() {
         if (this.purchaseStatus != PurchaseStatus.PAID) {
-        throw new IllegalStateException("결제 완료 상태에서만 개인 상품 구매 확정이 가능합니다.");
+            throw new IllegalStateException("결제 완료 상태에서만 개인 상품 구매 확정이 가능합니다.");
         }
-        
+
         if (this.purchasedAt == null) {
             this.purchasedAt = LocalDateTime.now();
         }
@@ -169,7 +170,7 @@ public class Purchase extends BaseEntity {
 
     private static void validateQuantity(int quantity) {
         if (quantity < 1) {
-            throw new IllegalArgumentException("quantity must be greater than 0");
+            throw new ServiceException(ErrorCode.INVALID_PURCHASE_QUANTITY);
         }
     }
 }

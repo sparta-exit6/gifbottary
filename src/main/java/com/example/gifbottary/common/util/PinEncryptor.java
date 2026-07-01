@@ -29,10 +29,10 @@ public class PinEncryptor {
 
     private final byte[] secretKey;
 
-    public PinEncryptor(@Value("${pin.encryption.secret-key:GifBottaryPin16!}") String secretKey) {
+    public PinEncryptor(@Value("${pin.encryption.secret-key}") String secretKey) {
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         if (!(keyBytes.length == 16 || keyBytes.length == 24 || keyBytes.length == 32)) {
-            throw new IllegalArgumentException("pin encryption key length must be 16, 24, or 32 bytes");
+            throw new ServiceException(ErrorCode.INVALID_PIN_ENCRYPTION_KEY);
         }
         this.secretKey = Arrays.copyOf(keyBytes, keyBytes.length);
     }

@@ -13,6 +13,10 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "COMMON_002", "입력값이 올바르지 않습니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON_003", "요청한 리소스를 찾을 수 없습니다."),
     CONFLICT(HttpStatus.CONFLICT, "COMMON_004", "요청이 현재 상태와 충돌합니다."),
+    INVALID_DUMMY_DATA_CONFIG(HttpStatus.INTERNAL_SERVER_ERROR, "DUMMY_001", "더미 데이터 적재 설정이 올바르지 않습니다."),
+    INVALID_DUMMY_DATA_SIZE(HttpStatus.INTERNAL_SERVER_ERROR, "DUMMY_002", "dummy.search.size 는 1 이상이어야 합니다."),
+    INVALID_DUMMY_BATCH_SIZE(HttpStatus.INTERNAL_SERVER_ERROR, "DUMMY_003", "dummy.search.batch-size 는 1 이상이어야 합니다."),
+    INVALID_DUMMY_PRODUCT_NAME_PREFIX(HttpStatus.INTERNAL_SERVER_ERROR, "DUMMY_004", "dummy.search.product-name-prefix 는 비어 있을 수 없습니다."),
 
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH_001", "인증이 필요합니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "AUTH_002", "접근 권한이 없습니다."),
@@ -33,6 +37,8 @@ public enum ErrorCode {
     INVALID_EXPIRE_AT(HttpStatus.BAD_REQUEST, "PRODUCT_009", "유효기간은 오늘 이후여야 합니다."),
     PRODUCT_NOT_AVAILABLE(HttpStatus.CONFLICT, "PRODUCT_010", "거래 가능한 상품이 아닙니다."),
     PLATFORM_SALE_ADMIN_ONLY(HttpStatus.FORBIDDEN, "PRODUCT_011", "플랫폼 상품 등록은 관리자만 가능합니다."),
+    INVALID_PIN_ENCRYPTION_KEY(HttpStatus.INTERNAL_SERVER_ERROR, "PRODUCT_012", "핀 암호화 키 설정이 올바르지 않습니다."),
+    INVALID_SALE_QUANTITY(HttpStatus.BAD_REQUEST, "PRODUCT_013", "판매 수량은 1개 이상이어야 합니다."),
 
     PIN_NOT_FOUND(HttpStatus.NOT_FOUND, "PIN_001", "핀 번호를 찾을 수 없습니다."),
     INVALID_PIN_INPUT(HttpStatus.BAD_REQUEST, "PIN_002", "핀 번호는 비어 있을 수 없습니다."),
@@ -55,6 +61,7 @@ public enum ErrorCode {
     PURCHASE_NOT_FOUND(HttpStatus.NOT_FOUND, "PURCHASE_001", "구매 내역을 찾을 수 없습니다."),
     PURCHASE_OWNERSHIP_MISMATCH(HttpStatus.FORBIDDEN, "PURCHASE_002", "본인 구매 내역만 조회할 수 있습니다."),
     INVALID_PURCHASE_STATUS(HttpStatus.BAD_REQUEST, "PURCHASE_003", "현재 구매 상태에서는 요청을 처리할 수 없습니다."),
+    INVALID_PURCHASE_QUANTITY(HttpStatus.BAD_REQUEST, "PURCHASE_004", "구매 수량은 1개 이상이어야 합니다."),
 
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_001", "결제 정보를 찾을 수 없습니다."),
     PAYMENT_OWNERSHIP_MISMATCH(HttpStatus.FORBIDDEN, "PAYMENT_002", "본인 결제만 조회할 수 있습니다."),
