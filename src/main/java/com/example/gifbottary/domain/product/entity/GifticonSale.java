@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -193,9 +194,10 @@ public class GifticonSale extends BaseEntity {
         }
 
         List<GifticonPin> availablePins = this.pins.stream()
-            .filter(GifticonPin::isAvailable)
-            .limit(quantity)
-            .toList();
+                .filter(GifticonPin::isAvailable)
+                .sorted(Comparator.comparing(GifticonPin::getId).reversed())
+                .limit(quantity)
+                .toList();
 
         if (availablePins.size() < quantity) {
             throw new IllegalStateException("판매 가능한 핀이 부족합니다.");
