@@ -350,6 +350,7 @@ spring:
 ---
 ## 🚀 8. 캐싱을 이용한 성능 개선
 ### [Wiki - 💡캐싱을 이용한 성능 개선 ‐ 상품 검색 인기 검색어 조회](https://github.com/sparta-exit6/gifbottary/wiki/%F0%9F%92%A1-%EC%BA%90%EC%8B%B1%EC%9D%84-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EC%84%B1%EB%8A%A5-%EA%B0%9C%EC%84%A0-%E2%80%90-%EC%83%81%ED%92%88-%EA%B2%80%EC%83%89-%EC%9D%B8%EA%B8%B0-%EA%B2%80%EC%83%89%EC%96%B4-%EC%A1%B0%ED%9A%8C)
+### [Wiki - Redis Cache 적용 전후 검색 API 성능 분석](https://github.com/sparta-exit6/gifbottary/wiki/Redis-Cache-%EC%A0%81%EC%9A%A9-%EC%A0%84%ED%9B%84-%EA%B2%80%EC%83%89-API-%EC%84%B1%EB%8A%A5-%EB%B6%84%EC%84%9D)
 
 ---
 ## 🔖 9. 인덱싱 최적화
