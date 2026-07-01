@@ -1,5 +1,6 @@
 package com.example.gifbottary.domain.purchase.service;
 
+import com.example.gifbottary.common.config.CacheConfig;
 import com.example.gifbottary.common.exception.ErrorCode;
 import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.common.util.PinEncryptor;
@@ -18,6 +19,7 @@ import com.example.gifbottary.domain.purchase.repository.PurchaseRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,7 @@ public class PurchaseService {
      * 현재 단계에서는 결제 도메인이 완전히 분리되지 않았기 때문에
      * 구매 생성과 결제 완료 처리를 하나의 트랜잭션 안에서 함께 진행합니다.
      */
+    @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
     @Transactional
     public PurchaseDetailResponse createPurchase(Long buyerId, Long saleId) {
         User buyer = findUser(buyerId);
