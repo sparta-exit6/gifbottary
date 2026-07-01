@@ -75,30 +75,41 @@ public class PaymentService {
 	 */
 	@Transactional
 	public PaymentConfirmResponse confirmPayment(PaymentConfirmRequest request) {
-		Payment payment = findPaymentForConfirm(request);
+    	Payment payment = findPaymentForConfirm(request);
 
-		if (payment.getStatus() != PaymentStatus.READY) {
-			throw new ServiceException(ErrorCode.CONFLICT);
-		}
+    	if (payment.getStatus() != PaymentStatus.READY) {
+        	throw new ServiceException(ErrorCode.CONFLICT);
+    	}
 
-		Purchase purchase = payment.getPurchase();
-		GifticonSale sale = gifticonSaleRepository.findWithLockById(purchase.getSale().getId())
-			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+    	Purchase purchase = payment.getPurchase();
 
-		PortOnePaymentResponse portOnePayment = portOneClient.getPayment(payment.getPortOnePaymentId());
-		validatePortOnePayment(payment, portOnePayment);
+    	// 1. 외부 API 검증은 DB 락 잡기 전에 먼저 수행
+    	PortOnePaymentResponse portOnePayment = portOneClient.getPayment(payment.getPortOnePaymentId());
+    	validatePortOnePayment(payment, portOnePayment);
 
-		payment.complete();
-		purchase.markPaid();
+    	// 2. 실제 재고 차감 직전에만 판매글 락 획득
+    	GifticonSale sale = gifticonSaleRepository.findWithLockById(purchase.getSale().getId())
+        	.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
 
-		if (sale.getSaleType() == SaleType.PERSONAL) {
-			purchase.confirmPersonalPurchase();
-		}
+    	// 3. 락 획득 후 상태 재검증
+   	 	if (payment.getStatus() != PaymentStatus.READY) {
+        	throw new ServiceException(ErrorCode.CONFLICT);
+    	}
 
-		// 결제 완료시 재고 차감
-		sale.sellPins(purchase.getQuantity());
+    	payment.complete();
+    	purchase.markPaid();
 
-		return PaymentConfirmResponse.from(payment);
+    	if (sale.getSaleType() == SaleType.PERSONAL) {
+        	purchase.confirmPersonalPurchase();
+    	}
+
+    	try {
+        	sale.sellPins(purchase.getQuantity());
+    	} catch (IllegalStateException exception) {
+        	throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
+    	}
+
+    	return PaymentConfirmResponse.from(payment);
 	}
 
 	private Payment findPaymentForConfirm(PaymentConfirmRequest request) {
