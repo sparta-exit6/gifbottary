@@ -12,6 +12,7 @@ public record MyProductSummaryResponse(
         SaleType saleType,
         String brand,
         String productName,
+        Integer faceValue,
         Integer salePrice,
         SaleStatus saleStatus,
         LocalDate expireAt,
