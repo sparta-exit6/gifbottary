@@ -1,5 +1,6 @@
 package com.example.gifbottary.domain.purchase.service;
 
+import com.example.gifbottary.common.config.CacheConfig;
 import com.example.gifbottary.common.exception.ErrorCode;
 import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.common.util.PinEncryptor;
@@ -18,10 +19,13 @@ import com.example.gifbottary.domain.purchase.repository.PurchaseRepository;
 import com.example.gifbottary.domain.user.entity.User;
 import com.example.gifbottary.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Comparator;
 
 /**
  * 구매 생성, 구매 내역 조회, 핀 번호 노출을 담당하는 서비스입니다.
@@ -41,6 +45,7 @@ public class PurchaseService {
      * 현재 단계에서는 결제 도메인이 완전히 분리되지 않았기 때문에
      * 구매 생성과 결제 완료 처리를 하나의 트랜잭션 안에서 함께 진행합니다.
      */
+    @CacheEvict(cacheNames = CacheConfig.PRODUCT_SEARCH_V2_CACHE, allEntries = true)
     @Transactional
     public PurchaseDetailResponse createPurchase(Long buyerId, Long saleId) {
         User buyer = findUser(buyerId);
@@ -112,9 +117,7 @@ public class PurchaseService {
      */
     private String resolvePinNumber(Purchase purchase) {
         return purchase.getSale().getPins().stream()
-                .filter(pin -> pin.getPinSaleStatus() == PinSaleStatus.SOLD)
-                .sorted((left, right) -> Long.compare(left.getId(), right.getId()))
-                .findFirst()
+                .filter(pin -> pin.getPinSaleStatus() == PinSaleStatus.SOLD).min(Comparator.comparingLong(GifticonPin::getId))
                 .map(GifticonPin::getEncryptedPin)
                 .map(pinEncryptor::decrypt)
                 .orElse(null);
