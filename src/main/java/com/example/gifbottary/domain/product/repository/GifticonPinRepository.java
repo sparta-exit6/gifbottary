@@ -7,6 +7,8 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,8 +16,6 @@ import java.util.Optional;
 public interface GifticonPinRepository extends JpaRepository<GifticonPin, Long> {
 
     Optional<GifticonPin> findByIdAndSale_Id(Long pinId, Long saleId);
-
-    List<GifticonPin> findAllBySale_IdOrderByIdAsc(Long saleId);
 
     boolean existsBySale_IdAndPinSaleStatus(Long saleId, PinSaleStatus pinSaleStatus);
 
@@ -27,6 +27,9 @@ public interface GifticonPinRepository extends JpaRepository<GifticonPin, Long> 
             PinValidationStatus pinValidationStatus,
             PinSaleStatus pinSaleStatus
     );
+
+    @Query("select p.pinHash from GifticonPin p where p.pinHash in :pinHashes")
+    List<String> findExistingPinHashes(@Param("pinHashes") List<String> pinHashes);
 
     /**
      * 판매 가능한 핀을 구매 수량만큼 비관적 락으로 조회합니다.

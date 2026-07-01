@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+
 /**
  * 구매 생성, 구매 내역 조회, 핀 번호 노출을 담당하는 서비스입니다.
  */
@@ -112,9 +114,7 @@ public class PurchaseService {
      */
     private String resolvePinNumber(Purchase purchase) {
         return purchase.getSale().getPins().stream()
-                .filter(pin -> pin.getPinSaleStatus() == PinSaleStatus.SOLD)
-                .sorted((left, right) -> Long.compare(left.getId(), right.getId()))
-                .findFirst()
+                .filter(pin -> pin.getPinSaleStatus() == PinSaleStatus.SOLD).min(Comparator.comparingLong(GifticonPin::getId))
                 .map(GifticonPin::getEncryptedPin)
                 .map(pinEncryptor::decrypt)
                 .orElse(null);
@@ -161,9 +161,7 @@ public class PurchaseService {
         Purchase purchase = purchaseRepository.findDetailById(purchaseId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.PURCHASE_NOT_FOUND));
 
-        if (!purchase.isOwner(buyerId)) {
-            throw new ServiceException(ErrorCode.PURCHASE_OWNERSHIP_MISMATCH);
-        }
+        purchase.validateOwner(buyerId);
 
         return purchase;
     }

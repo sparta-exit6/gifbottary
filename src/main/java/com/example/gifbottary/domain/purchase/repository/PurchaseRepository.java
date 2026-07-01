@@ -13,6 +13,6 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
 	@EntityGraph(attributePaths = {"buyer", "sale", "sale.product", "sale.pins"})
 	Optional<Purchase> findDetailById(Long id);
 
-	@EntityGraph(attributePaths = {"buyer", "sale", "sale.product", "sale.pins"})
+	@EntityGraph(attributePaths = {"buyer", "sale", "sale.product"})
 	Page<Purchase> findAllByBuyer_IdOrderByCreatedAtDesc(Long buyerId, Pageable pageable);
 }

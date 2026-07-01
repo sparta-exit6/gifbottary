@@ -1,6 +1,8 @@
 package com.example.gifbottary.domain.product.entity;
 
 import com.example.gifbottary.common.entity.BaseEntity;
+import com.example.gifbottary.common.exception.ErrorCode;
+import com.example.gifbottary.common.exception.ServiceException;
 import com.example.gifbottary.domain.product.enums.PinSaleStatus;
 import com.example.gifbottary.domain.product.enums.PinValidationStatus;
 import com.example.gifbottary.domain.product.enums.SaleStatus;
@@ -171,7 +173,7 @@ public class GifticonSale extends BaseEntity {
      */
     public void sellPins(int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("판매 수량은 1개 이상이어야 합니다.");
+            throw new ServiceException(ErrorCode.INVALID_SALE_QUANTITY);
         }
 
         List<GifticonPin> availablePins = this.pins.stream()

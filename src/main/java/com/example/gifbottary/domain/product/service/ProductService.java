@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -144,7 +145,11 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductPinValidationResponse findPinValidation(Long sellerId, Long saleId) {
         GifticonSale sale = findOwnedSale(sellerId, saleId);
-        List<GifticonPin> pins = gifticonPinRepository.findAllBySale_IdOrderByIdAsc(sale.getId());
+
+        List<GifticonPin> pins = sale.getPins().stream()
+                .sorted(Comparator.comparingLong(GifticonPin::getId))
+                .toList();
+
         return ProductPinValidationResponse.from(sale, pins);
     }
 
@@ -248,13 +253,21 @@ public class ProductService {
         List<String> normalizedPins = normalizePinNumbers(rawPins);
         validatePinCountBySaleType(sale, normalizedPins, saleType);
 
-        for (String rawPin : normalizedPins) {
-            String pinHash = pinEncryptor.hash(rawPin);
-            if (gifticonPinRepository.existsByPinHash(pinHash)) {
-                throw duplicatedPinException();
-            }
+        List<String> pinHashes = normalizedPins.stream()
+                .map(pinEncryptor::hash)
+                .toList();
 
+        List<String> existingPinHashes = gifticonPinRepository.findExistingPinHashes(pinHashes);
+
+        if (!existingPinHashes.isEmpty()) {
+            throw duplicatedPinException();
+        }
+
+        for (int i = 0; i < normalizedPins.size(); i++) {
+            String rawPin = normalizedPins.get(i);
+            String pinHash = pinHashes.get(i);
             String encryptedPin = pinEncryptor.encrypt(rawPin);
+
             GifticonPin gifticonPin = new GifticonPin(encryptedPin, pinHash);
             sale.addPin(gifticonPin);
         }
@@ -312,10 +325,11 @@ public class ProductService {
     }
 
     private ProductDetailResponse toDetailResponse(GifticonSale sale) {
-        List<PinDetailResponse> pinResponses = gifticonPinRepository.findAllBySale_IdOrderByIdAsc(sale.getId())
-                .stream()
+        List<PinDetailResponse> pinResponses = sale.getPins().stream()
+                .sorted(Comparator.comparingLong(GifticonPin::getId))
                 .map(PinDetailResponse::from)
                 .toList();
+
         return ProductDetailResponse.from(sale, pinResponses);
     }
 
