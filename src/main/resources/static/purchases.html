@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>구매내역 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.href='./index.html'">
+        <span class="logo-icon">🎁</span>
+        <span>기프보따리</span>
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="검색어를 입력하세요">
+        <button>🔍</button>
+    </div>
+
+    <nav class="nav">
+        <button onclick="goRegisterPage()">상품 등록</button>
+        <button onclick="location.href='./chat.html'">채팅</button>
+        <button onclick="logout()">로그아웃</button>
+    </nav>
+</header>
+
+<main class="mypage-wrap">
+
+    <aside class="mypage-sidebar">
+        <div class="mypage-profile">
+            <div class="profile-circle">👤</div>
+            <h3>마이페이지</h3>
+            <p>구매한 기프트카드 관리</p>
+        </div>
+
+        <nav class="mypage-menu">
+            <button onclick="location.href='./mypage.html'">내 정보</button>
+            <button class="active">구매내역</button>
+            <button onclick="location.href='./my-products.html'">판매내역</button>
+            <button onclick="location.href='./chat.html'">채팅목록</button>
+            <button onclick="location.href='./index.html'">메인으로</button>
+        </nav>
+    </aside>
+
+    <section class="mypage-main">
+        <div class="mypage-title-box">
+            <h1>구매내역</h1>
+            <p>구매한 기프트카드와 핀번호 확인 상태를 관리할 수 있습니다.</p>
+        </div>
+
+        <section class="purchase-filter-box">
+            <button class="filter-btn active" onclick="changePurchaseFilter('ALL', this)">전체</button>
+            <button class="filter-btn" onclick="changePurchaseFilter('PERSONAL', this)">개인 판매</button>
+            <button class="filter-btn" onclick="changePurchaseFilter('PLATFORM', this)">관리자 판매</button>
+            <button class="filter-btn" onclick="changePurchaseFilter('PENDING_CONFIRM', this)">확인 대기</button>
+            <button class="filter-btn" onclick="changePurchaseFilter('CONFIRMED', this)">확인 완료</button>
+        </section>
+
+        <section id="purchaseList" class="purchase-list">
+            <!-- JS에서 구매내역 렌더링 -->
+        </section>
+    </section>
+
+</main>
+
+<div id="pinModal" class="pin-modal-bg hidden">
+    <div class="pin-modal">
+        <button class="pin-modal-close" onclick="closePinModal()">×</button>
+
+        <h2>핀번호 확인</h2>
+        <p id="modalProductName" class="modal-product-name">상품명</p>
+
+        <div class="modal-pin-box">
+            <span id="modalPinNumber">****-****-****-****</span>
+        </div>
+
+        <div class="modal-warning">
+            ⚠️ 핀번호를 확인하면 단순 변심으로 인한 환불 및 취소가 불가능합니다.
+        </div>
+
+        <div class="modal-button-area">
+            <button class="outline-btn" onclick="closePinModal()">닫기</button>
+            <button id="pinRevealBtn" class="orange-btn" onclick="revealPinNumber()">핀번호 보기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 환불 요청 모달 -->
+<div id="refundModal" class="refund-modal-bg hidden">
+    <div class="refund-modal">
+        <button class="refund-modal-close" onclick="closeRefundModal()">×</button>
+
+        <h2>환불 요청</h2>
+        <p id="refundProductName" class="modal-product-name">상품명</p>
+
+        <div class="refund-info-box">
+            <div>
+                <span>결제 금액</span>
+                <strong id="refundTotalAmount">0원</strong>
+            </div>
+
+            <div>
+                <span>포인트 사용</span>
+                <strong id="refundPointAmount">0 P</strong>
+            </div>
+
+            <div>
+                <span>카드 결제</span>
+                <strong id="refundCardAmount">0원</strong>
+            </div>
+        </div>
+
+        <div class="refund-form-row">
+            <label for="refundReason">환불 사유</label>
+            <select id="refundReason">
+                <option value="">환불 사유를 선택하세요</option>
+                <option value="WRONG_PURCHASE">잘못 구매했어요</option>
+                <option value="CHANGE_MIND">단순 변심</option>
+                <option value="PRODUCT_PROBLEM">상품에 문제가 있어요</option>
+                <option value="PAYMENT_PROBLEM">결제에 문제가 있어요</option>
+                <option value="ETC">기타</option>
+            </select>
+        </div>
+
+        <div class="refund-form-row">
+            <label for="refundReasonDetail">상세 사유</label>
+            <textarea id="refundReasonDetail" placeholder="환불 사유를 자세히 입력해주세요."></textarea>
+        </div>
+
+        <div class="refund-warning">
+            ⚠️ 핀번호를 이미 확인한 개인 판매 기프트카드는 환불이 제한될 수 있습니다.
+        </div>
+
+        <div class="modal-button-area">
+            <button class="outline-btn" onclick="closeRefundModal()">취소</button>
+            <button class="orange-btn" onclick="submitRefundRequest()">환불 요청</button>
+        </div>
+    </div>
+</div>
+
+<script src="./js/app.js"></script>
+<script src="./js/purchases.js"></script>
+</body>
+</html>

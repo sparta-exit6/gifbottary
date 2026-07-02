@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 상세 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.href='./index.html'">
+        <span class="logo-icon">🎁</span>
+        <span>기프보따리</span>
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="검색어를 입력하세요">
+        <button>🔍</button>
+    </div>
+
+    <nav class="nav">
+        <button onclick="goRegisterPage()">상품 등록</button>
+        <button onclick="location.href='./mypage.html'">마이페이지</button>
+    </nav>
+</header>
+
+<main class="detail-page">
+    <section class="detail-container">
+
+        <div id="detailImage" class="detail-image bg-starbucks">
+            STARBUCKS
+        </div>
+
+        <div class="detail-info">
+            <span id="detailSaleType" class="sale-badge">개인 판매</span>
+            <h1 id="detailProductName">스타벅스 아메리카노 Tall</h1>
+
+            <p id="detailBrand" class="detail-origin-price">브랜드 STARBUCKS</p>
+            <p id="detailSalePrice" class="detail-sale-price">판매가 4,300원</p>
+
+            <div class="detail-meta">
+                <p><strong>판매자</strong> <span id="detailSeller">-</span></p>
+                <p><strong>상품 상태</strong> <span id="detailStatus">판매중</span></p>
+                <p><strong>재고</strong> <span id="detailStock">-</span></p>
+                <p><strong>유효기간</strong> <span id="detailExpireAt">2026.07.30</span></p>
+            </div>
+
+            <div id="detailDescription" class="detail-description">
+                스타벅스 아메리카노 Tall 기프티콘입니다.
+                구매 전 문의가 필요하면 아래 문의하기 버튼을 눌러주세요.
+            </div>
+
+            <div class="detail-actions">
+                <button id="chatButton" class="chat-start-btn" onclick="createChatRoom(1)">
+                    💬 문의하기
+                </button>
+                <button id="buyButton" class="buy-btn">
+                    바로 구매
+                </button>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<!-- 결제 모달 -->
+<div id="paymentModal" class="payment-modal-bg hidden">
+    <div class="payment-modal">
+
+        <button class="payment-modal-close" onclick="closePaymentModal()">×</button>
+
+        <h2>결제하기</h2>
+        <p class="payment-subtitle">구매할 기프트카드 정보를 확인해주세요.</p>
+
+        <div class="payment-product-box">
+            <div id="paymentProductImage" class="payment-product-image bg-starbucks">
+                STARBUCKS
+            </div>
+
+            <div class="payment-product-info">
+                <span id="paymentProductType" class="payment-type-badge personal">개인 판매</span>
+                <h3 id="paymentProductName">스타벅스 아메리카노 Tall</h3>
+                <p id="paymentOriginalPrice">정가 5,000원</p>
+                <strong id="paymentSalePrice">판매가 4,300원</strong>
+            </div>
+        </div>
+
+        <div class="payment-price-box">
+            <div class="payment-price-row">
+                <span>상품 금액</span>
+                <strong id="modalProductAmount">0원</strong>
+            </div>
+
+            <div class="payment-price-row">
+                <span>보유 포인트</span>
+                <strong id="modalPointBalance">0 P</strong>
+            </div>
+
+            <div class="payment-point-row">
+                <label for="usePointInput">사용 포인트</label>
+                <div>
+                    <input id="usePointInput" type="number" value="0" min="0" oninput="calculatePaymentAmount()">
+                    <button onclick="useAllPoint()">전액 사용</button>
+                </div>
+            </div>
+
+            <div class="payment-price-row">
+                <span>카드 결제 금액</span>
+                <strong id="modalCardAmount">0원</strong>
+            </div>
+
+            <div class="payment-total-row">
+                <span>최종 결제 금액</span>
+                <strong id="modalTotalAmount">0원</strong>
+            </div>
+        </div>
+
+        <label class="payment-agree">
+            <input id="paymentAgree" type="checkbox">
+            구매 조건을 확인했으며 결제에 동의합니다.
+        </label>
+
+        <div class="payment-warning">
+            개인 판매 기프트카드는 핀번호 확인 후 단순 변심 환불이 제한될 수 있습니다.
+        </div>
+
+        <div class="payment-button-area">
+            <button class="payment-cancel-btn" onclick="closePaymentModal()">취소</button>
+            <button class="payment-submit-btn" onclick="requestPayment()">결제하기</button>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script src="./js/chat.js"></script>
+<script src="./js/payment.js?v=20260701-4"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", loadProductDetail);
+
+    async function loadProductDetail() {
+        const params = new URLSearchParams(location.search);
+        const saleId = params.get("saleId");
+
+        if (!saleId) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/products/${saleId}`);
+            const result = await response.json();
+
+            if (!response.ok || result.success === false) {
+                alert(result.message || "상품 정보를 불러오지 못했습니다.");
+                return;
+            }
+
+            renderProductDetail(result.data);
+        } catch (error) {
+            console.error(error);
+            alert("상품 정보를 불러오지 못했습니다.");
+        }
+    }
+
+    function renderProductDetail(product) {
+        const brand = product.brand || "GIFT CARD";
+        const bgClass = getDetailProductBgClass(brand);
+        const detailImage = document.getElementById("detailImage");
+
+        detailImage.className = `detail-image ${bgClass}`;
+        detailImage.textContent = brand;
+
+        document.getElementById("detailSaleType").textContent =
+            product.saleType === "PLATFORM" ? "관리자 판매" : "개인 판매";
+        document.getElementById("detailProductName").textContent = product.productName || "상품명";
+        document.getElementById("detailBrand").textContent = `브랜드 ${brand}`;
+        document.getElementById("detailSalePrice").textContent =
+            `판매가 ${Number(product.salePrice || 0).toLocaleString("ko-KR")}원`;
+        document.getElementById("detailSeller").textContent =
+            product.sellerName || product.sellerNickname || product.sellerId || "-";
+        document.getElementById("detailStatus").textContent = product.saleStatus || "-";
+        document.getElementById("detailStock").textContent =
+            `${Number(product.stock || 0).toLocaleString("ko-KR")}개`;
+        document.getElementById("detailExpireAt").textContent = product.expireAt || "-";
+        document.getElementById("detailDescription").textContent =
+            product.description || `${product.productName || "기프티콘"} 기프티콘입니다. 구매 전 문의가 필요하면 아래 문의하기 버튼을 눌러주세요.`;
+
+        document.getElementById("chatButton").onclick = () => createChatRoom(product.saleId);
+        document.getElementById("buyButton").onclick = () => openPaymentModal({
+            saleId: product.saleId,
+            productName: product.productName,
+            originalPrice: product.faceValue || product.salePrice,
+            salePrice: product.salePrice,
+            productType: product.saleType,
+            imageText: brand,
+            bgClass: bgClass
+        });
+    }
+
+    function getDetailProductBgClass(brand) {
+        const normalizedBrand = String(brand || "").toLowerCase();
+
+        if (normalizedBrand.includes("starbucks") || normalizedBrand.includes("스타벅스")) {
+            return "bg-starbucks";
+        }
+
+        if (normalizedBrand.includes("bhc")) {
+            return "bg-bhc";
+        }
+
+        if (normalizedBrand.includes("olive") || normalizedBrand.includes("올리브")) {
+            return "bg-olive";
+        }
+
+        if (normalizedBrand.includes("cu")) {
+            return "bg-cu";
+        }
+
+        if (normalizedBrand.includes("mega") || normalizedBrand.includes("메가박스")) {
+            return "bg-megabox";
+        }
+
+        return "bg-money";
+    }
+</script>
+</body>
+</html>

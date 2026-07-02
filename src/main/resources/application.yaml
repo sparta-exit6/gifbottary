@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: gifbottary
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+search:
+  popular:
+    dedupe-ttl-minutes: 10
+    score-increment: 1
+    daily-key-prefix: popular:keywords:daily
+    dedupe-key-prefix: popular:dedupe

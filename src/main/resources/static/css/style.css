@@ -1,0 +1,2936 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, "Noto Sans KR", sans-serif;
+    background-color: #fafafa;
+    color: #222;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+}
+
+.header {
+    height: 78px;
+    padding: 0 48px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    border-bottom: 1px solid #eeeeee;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 28px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.logo-icon {
+    font-size: 30px;
+}
+
+.search-box {
+    flex: 1;
+    max-width: 620px;
+    height: 44px;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.search-box input {
+    flex: 1;
+    height: 100%;
+    border: none;
+    outline: none;
+    padding: 0 16px;
+    font-size: 15px;
+}
+
+.search-box button {
+    width: 52px;
+    height: 100%;
+    font-size: 20px;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.nav button {
+    min-width: 86px;
+    height: 42px;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 14px;
+}
+
+.nav button:hover {
+    background: #f7f7f7;
+}
+
+.profile-btn {
+    min-width: 46px !important;
+    width: 46px;
+    height: 46px !important;
+    border-radius: 50% !important;
+    font-size: 22px !important;
+    background: #f0f0f0 !important;
+}
+
+.container {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 32px 48px 48px;
+}
+
+.hero {
+    height: 205px;
+    background: linear-gradient(90deg, #fff1dd 0%, #fff7ed 48%, #fff1e4 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 36px 72px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 38px;
+}
+
+.hero-text h1 {
+    margin: 0 0 18px;
+    font-size: 36px;
+    line-height: 1.35;
+    font-weight: 800;
+}
+
+.hero-text h1 span {
+    color: #ff5a2f;
+}
+
+.hero-text p {
+    margin: 0;
+    color: #555;
+    font-size: 16px;
+}
+
+.hero-visual {
+    position: relative;
+    width: 370px;
+    height: 150px;
+}
+
+.gift-card {
+    position: absolute;
+    width: 180px;
+    height: 90px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.16);
+}
+
+.card-blue {
+    right: 120px;
+    top: 20px;
+    background: linear-gradient(135deg, #3fa7df, #2473b6);
+    transform: rotate(-6deg);
+}
+
+.card-green {
+    right: 55px;
+    top: 65px;
+    background: linear-gradient(135deg, #2673bd, #2ab36f);
+    transform: rotate(4deg);
+}
+
+.gift-box {
+    position: absolute;
+    right: 0;
+    top: 18px;
+    font-size: 86px;
+}
+
+.hero-dots {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+}
+
+.hero-dots span {
+    width: 10px;
+    height: 10px;
+    background: #d8d8d8;
+    border-radius: 50%;
+}
+
+.hero-dots .active {
+    background: #333;
+}
+
+.product-section {
+    margin-bottom: 42px;
+}
+
+.product-section h2 {
+    margin: 0 0 20px;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 22px;
+}
+
+.product-card {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: 0.2s;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+}
+
+.product-image {
+    height: 122px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+    font-weight: 800;
+    color: white;
+    overflow: hidden;
+}
+
+.product-title {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+    min-height: 42px;
+}
+
+.origin-price {
+    margin: 0 0 8px;
+    color: #666666;
+    font-size: 14px;
+}
+
+.sale-price {
+    margin: 0;
+    color: #ff1e1e;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.card-footer {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    font-size: 22px;
+    color: #666;
+}
+
+.benefit-section {
+    margin-top: 34px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 24px 36px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.benefit-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.benefit-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 22px;
+}
+
+.benefit-card strong {
+    font-size: 15px;
+}
+
+.benefit-card p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #777;
+}
+
+.bg-starbucks {
+    background: linear-gradient(135deg, #00704a 0%, #ffffff 100%);
+    color: #00704a;
+}
+
+.bg-bhc {
+    background: linear-gradient(135deg, #1d1d1d, #f7b500);
+}
+
+.bg-olive {
+    background: linear-gradient(135deg, #8cc63f, #d9ef9f);
+}
+
+.bg-cu {
+    background: linear-gradient(135deg, #4b2780, #6bc04a);
+}
+
+.bg-megabox {
+    background: linear-gradient(135deg, #34125f, #59329b);
+}
+
+.bg-money {
+    background: linear-gradient(135deg, #ead9bd, #b38b4c);
+}
+
+.bg-lotte {
+    background: linear-gradient(135deg, #0b1d4d, #244a93);
+}
+
+.bg-happy {
+    background: linear-gradient(135deg, #ffb000, #ffcf55);
+}
+
+.bg-google {
+    background: linear-gradient(135deg, #101010, #2d2d2d);
+}
+
+.bg-culture {
+    background: linear-gradient(135deg, #ffffff, #eeeeee);
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+@media (max-width: 1100px) {
+    .product-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .benefit-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero {
+        padding: 32px;
+    }
+}
+
+@media (max-width: 760px) {
+    .header {
+        height: auto;
+        padding: 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .nav {
+        margin-left: 0;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    .hero {
+        height: auto;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hero-visual {
+        margin-top: 24px;
+        width: 100%;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .benefit-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===============================
+   회원가입 페이지
+================================ */
+
+.signup-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 45%, #f8f8f8 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.signup-container {
+    width: 900px;
+    min-height: 520px;
+}
+
+.signup-box {
+    width: 100%;
+    min-height: 520px;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    overflow: hidden;
+}
+
+.signup-brand {
+    background: linear-gradient(180deg, #fff1dd 0%, #fff8ef 100%);
+    border-right: 1px solid #eeeeee;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+}
+
+.brand-logo-box {
+    width: 120px;
+    height: 120px;
+    border: 2px solid #e2d3c5;
+    border-radius: 16px;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 52px;
+}
+
+.signup-brand h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.signup-brand p {
+    margin: 0;
+    color: #777;
+    font-size: 14px;
+}
+
+.signup-form-area {
+    padding: 58px 70px;
+    display: flex;
+    flex-direction: column;
+}
+
+.signup-form-area h2 {
+    margin: 0 0 34px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-row label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.form-row input {
+    height: 42px;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-row input:focus {
+    border-color: #ff7a45;
+    box-shadow: 0 0 0 3px rgba(255, 122, 69, 0.12);
+}
+
+.terms-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 24px 136px;
+    font-size: 14px;
+    color: #444;
+}
+
+.terms-check input {
+    width: 16px;
+    height: 16px;
+}
+
+.signup-submit-btn {
+    width: 170px;
+    height: 46px;
+    margin: 0 auto;
+    border: none;
+    border-radius: 8px;
+    background: #ff6b35;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.signup-submit-btn:hover {
+    background: #f05c25;
+}
+
+.login-guide {
+    margin-top: 20px;
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+}
+
+.login-guide a {
+    color: #ff6b35;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.signup-complete-box {
+    width: 100%;
+    min-height: 520px;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    text-align: center;
+}
+
+.complete-icon {
+    width: 120px;
+    height: 120px;
+    border: 3px solid #dddddd;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 58px;
+    color: #ff6b35;
+    margin-bottom: 8px;
+}
+
+.signup-complete-box h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.signup-complete-box p {
+    margin: 0 0 12px;
+    color: #666;
+}
+
+.signup-complete-box button {
+    width: 180px;
+    height: 44px;
+    border: none;
+    border-radius: 8px;
+    background: #ff6b35;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.signup-complete-box .home-btn {
+    background: #ffffff;
+    color: #333333;
+    border: 1px solid #dddddd;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 760px) {
+    .signup-page {
+        padding: 20px;
+    }
+
+    .signup-container {
+        width: 100%;
+    }
+
+    .signup-box {
+        grid-template-columns: 1fr;
+    }
+
+    .signup-brand {
+        min-height: 220px;
+        border-right: none;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .signup-form-area {
+        padding: 36px 24px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .terms-check {
+        margin-left: 0;
+    }
+}
+
+/* ===============================
+   로그인 페이지
+================================ */
+
+.login-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 45%, #f8f8f8 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.login-container {
+    width: 900px;
+    min-height: 500px;
+}
+
+.login-box {
+    width: 100%;
+    min-height: 500px;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    overflow: hidden;
+}
+
+.login-brand {
+    background: linear-gradient(180deg, #fff1dd 0%, #fff8ef 100%);
+    border-right: 1px solid #eeeeee;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+}
+
+.login-brand h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.login-brand p {
+    margin: 0;
+    color: #777;
+    font-size: 14px;
+}
+
+.login-form-area {
+    padding: 72px 70px;
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form-area h2 {
+    margin: 0 0 40px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.login-submit-btn {
+    width: 170px;
+    height: 46px;
+    margin: 18px auto 0;
+    border: none;
+    border-radius: 8px;
+    background: #ff6b35;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.login-submit-btn:hover {
+    background: #f05c25;
+}
+
+.signup-guide {
+    margin-top: 22px;
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+}
+
+.signup-guide a {
+    color: #ff6b35;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.home-move-btn {
+    width: 170px;
+    height: 42px;
+    margin: 10px auto 0;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #333333;
+    font-weight: 700;
+}
+
+.home-move-btn:hover {
+    background: #f7f7f7;
+}
+
+@media (max-width: 760px) {
+    .login-page {
+        padding: 20px;
+    }
+
+    .login-container {
+        width: 100%;
+    }
+
+    .login-box {
+        grid-template-columns: 1fr;
+    }
+
+    .login-brand {
+        min-height: 220px;
+        border-right: none;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .login-form-area {
+        padding: 36px 24px;
+    }
+}
+
+/* ===============================
+   상품 등록 페이지
+================================ */
+
+.register-page {
+    min-height: calc(100vh - 78px);
+    background: #fafafa;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 50px 24px;
+}
+
+.register-container {
+    width: 980px;
+    min-height: 620px;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    overflow: hidden;
+}
+
+.register-brand {
+    background: linear-gradient(180deg, #fff1dd 0%, #fff8ef 100%);
+    border-right: 1px solid #eeeeee;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+}
+
+.register-logo-box {
+    width: 140px;
+    height: 140px;
+    border: 2px solid #e2d3c5;
+    border-radius: 16px;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 54px;
+    overflow: hidden;
+}
+
+.register-logo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.register-brand h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.register-brand p {
+    margin: 0;
+    color: #777;
+    font-size: 14px;
+}
+
+.register-form-area {
+    padding: 54px 70px;
+}
+
+.register-form-area h2 {
+    margin: 0 0 34px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.register-form-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.register-form-row label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.register-form-row input,
+.register-form-row textarea {
+    width: 100%;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    outline: none;
+}
+
+.register-form-row input {
+    height: 42px;
+}
+
+.register-form-row textarea {
+    height: 90px;
+    padding-top: 12px;
+    resize: none;
+}
+
+.register-form-row input:focus,
+.register-form-row textarea:focus {
+    border-color: #ff7a45;
+    box-shadow: 0 0 0 3px rgba(255, 122, 69, 0.12);
+}
+
+.register-button-area {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
+
+.file-upload-btn,
+.register-submit-btn {
+    width: 130px;
+    height: 44px;
+    border-radius: 8px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-upload-btn {
+    border: 1px solid #dddddd;
+    background: #ffffff;
+    color: #333333;
+    cursor: pointer;
+}
+
+.file-upload-btn:hover {
+    background: #f7f7f7;
+}
+
+.register-submit-btn {
+    border: none;
+    background: #ff6b35;
+    color: #ffffff;
+}
+
+.register-submit-btn:hover {
+    background: #f05c25;
+}
+
+@media (max-width: 760px) {
+    .register-container {
+        width: 100%;
+        grid-template-columns: 1fr;
+    }
+
+    .register-brand {
+        min-height: 240px;
+        border-right: none;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .register-form-area {
+        padding: 36px 24px;
+    }
+
+    .register-form-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
+
+/* ===============================
+   상품 상세 페이지
+================================ */
+
+.detail-page {
+    min-height: calc(100vh - 78px);
+    background: #fafafa;
+    padding: 50px 24px;
+}
+
+.detail-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #eeeeee;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: 430px 1fr;
+    gap: 50px;
+    padding: 50px;
+}
+
+.detail-image {
+    height: 430px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 34px;
+    font-weight: 800;
+}
+
+.detail-info h1 {
+    margin: 18px 0 18px;
+    font-size: 32px;
+}
+
+.sale-badge {
+    display: inline-block;
+    background: #fff1dd;
+    color: #ff6b35;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.detail-origin-price {
+    color: #777;
+    font-size: 16px;
+    margin: 0 0 8px;
+}
+
+.detail-sale-price {
+    color: #ff1e1e;
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 28px;
+}
+
+.detail-meta {
+    border-top: 1px solid #eeeeee;
+    border-bottom: 1px solid #eeeeee;
+    padding: 18px 0;
+    margin-bottom: 24px;
+}
+
+.detail-meta p {
+    margin: 8px 0;
+    color: #555;
+}
+
+.detail-meta strong {
+    display: inline-block;
+    width: 90px;
+    color: #222;
+}
+
+.detail-description {
+    background: #f8f8f8;
+    padding: 18px;
+    border-radius: 12px;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 28px;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.chat-start-btn,
+.buy-btn {
+    height: 48px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.chat-start-btn {
+    width: 160px;
+    background: #ffffff;
+    border: 1px solid #ff6b35;
+    color: #ff6b35;
+}
+
+.buy-btn {
+    width: 180px;
+    background: #ff6b35;
+    color: #ffffff;
+}
+
+/* ===============================
+   채팅 페이지
+================================ */
+
+.chat-page {
+    min-height: calc(100vh - 78px);
+    background: #fafafa;
+    padding: 34px 24px;
+}
+
+.chat-container {
+    max-width: 1180px;
+    height: 720px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: 310px 1fr;
+    overflow: hidden;
+}
+
+.chat-left-panel {
+    border-right: 1px solid #eeeeee;
+    background: #fffdf9;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-product-box {
+    padding: 22px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.chat-product-box h3,
+.chat-list-box h3 {
+    margin: 0 0 16px;
+    font-size: 17px;
+}
+
+.chat-product-image {
+    height: 130px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+}
+
+.chat-product-box h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+}
+
+.chat-product-box p {
+    margin: 0 0 10px;
+    color: #ff1e1e;
+    font-weight: 800;
+}
+
+.status-selling {
+    display: inline-block;
+    padding: 5px 9px;
+    background: #e8f7ee;
+    color: #16834a;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+.chat-product-box button {
+    width: 100%;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid #dddddd;
+    background: #ffffff;
+    margin-top: 8px;
+    font-weight: 700;
+}
+
+.buy-small-btn {
+    background: #ff6b35 !important;
+    color: #ffffff;
+    border: none !important;
+}
+
+.chat-list-box {
+    flex: 1;
+    padding: 22px;
+    overflow-y: auto;
+}
+
+.chat-room-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-room-item {
+    display: grid;
+    grid-template-columns: 42px 1fr 24px;
+    gap: 10px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.chat-room-item:hover,
+.chat-room-item.active {
+    background: #fff1dd;
+}
+
+.chat-room-item strong {
+    font-size: 14px;
+}
+
+.chat-room-item p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #777;
+}
+
+.chat-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #ffe4cf;
+    color: #ff6b35;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+}
+
+.chat-avatar.large {
+    width: 48px;
+    height: 48px;
+}
+
+.unread-count {
+    width: 22px;
+    height: 22px;
+    background: #ff6b35;
+    color: #ffffff;
+    font-size: 12px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.leave-chat-btn {
+    height: 44px;
+    margin: 18px 22px 22px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    font-weight: 700;
+}
+
+.chat-main-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.chat-top {
+    height: 78px;
+    border-bottom: 1px solid #eeeeee;
+    display: flex;
+    align-items: center;
+    padding: 0 26px;
+}
+
+.chat-user-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.chat-user-info h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.chat-user-info p {
+    margin: 5px 0 0;
+    color: #16834a;
+    font-size: 13px;
+}
+
+.chat-message-list {
+    flex: 1;
+    padding: 28px;
+    background: #fbfbfb;
+    overflow-y: auto;
+}
+
+.message-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.message-row.me {
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.message-row.other {
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.message-bubble {
+    max-width: 420px;
+    padding: 13px 16px;
+    border-radius: 16px;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.message-row.me .message-bubble {
+    background: #ff6b35;
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+}
+
+.message-row.other .message-bubble {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-bottom-left-radius: 4px;
+}
+
+.message-row.system {
+    justify-content: center;
+    align-items: center;
+    margin: 16px 0;
+}
+
+.system-bubble {
+    background: #f0f4f8;
+    color: #5a6a85;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 999px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.message-time {
+    font-size: 12px;
+    color: #999999;
+    margin: 0 4px;
+}
+
+.chat-input-area {
+    height: 72px;
+    border-top: 1px solid #eeeeee;
+    display: flex;
+    gap: 10px;
+    padding: 14px 18px;
+    background: #ffffff;
+}
+
+.chat-input-area input {
+    flex: 1;
+    border: 1px solid #dddddd;
+    border-radius: 999px;
+    padding: 0 18px;
+    outline: none;
+}
+
+.chat-input-area input:focus {
+    border-color: #ff7a45;
+    box-shadow: 0 0 0 3px rgba(255, 122, 69, 0.12);
+}
+
+.chat-input-area button {
+    width: 88px;
+    border-radius: 999px;
+    background: #ff6b35;
+    color: #ffffff;
+    font-weight: 800;
+}
+
+@media (max-width: 900px) {
+    .detail-container {
+        grid-template-columns: 1fr;
+    }
+
+    .chat-container {
+        height: auto;
+        grid-template-columns: 1fr;
+    }
+
+    .chat-left-panel {
+        border-right: none;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .chat-message-list {
+        min-height: 420px;
+    }
+}
+
+/* ===============================
+   마이페이지
+================================ */
+
+.mypage-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: calc(100vh - 78px);
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 28px;
+    padding: 36px 48px 60px;
+    background: #fafafa;
+}
+
+.mypage-sidebar {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    padding: 24px;
+    height: fit-content;
+}
+
+.mypage-profile {
+    text-align: center;
+    padding-bottom: 22px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.profile-circle {
+    width: 78px;
+    height: 78px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: #fff1dd;
+    color: #ff6b35;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 34px;
+}
+
+.mypage-profile h3 {
+    margin: 0 0 6px;
+    font-size: 20px;
+}
+
+.mypage-profile p {
+    margin: 0;
+    color: #777777;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+.mypage-menu {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mypage-menu button {
+    width: 100%;
+    height: 42px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    color: #333333;
+    font-weight: 700;
+    text-align: left;
+    padding: 0 16px;
+}
+
+.mypage-menu button:hover,
+.mypage-menu button.active {
+    background: #ff6b35;
+    color: #ffffff;
+    border-color: #ff6b35;
+}
+
+.mypage-main {
+    min-width: 0;
+}
+
+.mypage-title-box {
+    margin-bottom: 24px;
+}
+
+.mypage-title-box h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.mypage-title-box p {
+    margin: 0;
+    color: #777777;
+}
+
+.my-info-card {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    padding: 30px;
+    margin-bottom: 28px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 26px;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.role-badge {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #fff1dd;
+    color: #ff6b35;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.info-item {
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+    padding: 18px;
+    background: #fbfbfb;
+}
+
+.info-item span {
+    display: block;
+    color: #777777;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.info-item strong {
+    font-size: 18px;
+}
+
+.info-item.point {
+    grid-column: 1 / -1;
+    background: linear-gradient(90deg, #fff1dd, #fff8ef);
+    border-color: #ffe1c2;
+}
+
+.info-item.point strong {
+    color: #ff6b35;
+    font-size: 24px;
+}
+
+.role-badge.admin {
+    background: #e8f0ff;
+    color: #2563eb;
+}
+
+.mypage-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.shortcut-card {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    padding: 24px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.shortcut-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.shortcut-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #fff1dd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+    margin-bottom: 16px;
+}
+
+.shortcut-card h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+
+.shortcut-card p {
+    margin: 0;
+    color: #777777;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .mypage-wrap {
+        grid-template-columns: 1fr;
+        padding: 24px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mypage-shortcuts {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===============================
+   구매내역 페이지
+================================ */
+
+.purchase-filter-box {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.filter-btn {
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid #dddddd;
+    background: #ffffff;
+    font-weight: 700;
+    color: #555555;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    color: #ffffff;
+}
+
+.purchase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.purchase-history-card {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 150px 1fr 180px;
+    gap: 24px;
+    align-items: center;
+}
+
+.purchase-image {
+    height: 130px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: center;
+    padding: 12px;
+}
+
+.purchase-info h3 {
+    margin: 0 0 10px;
+    font-size: 21px;
+}
+
+.purchase-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.purchase-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.purchase-badge.personal {
+    background: #fff1dd;
+    color: #ff6b35;
+}
+
+.purchase-badge.platform {
+    background: #e8f0ff;
+    color: #2563eb;
+}
+
+.purchase-badge.completed {
+    background: #e8f7ee;
+    color: #16834a;
+}
+
+.purchase-badge.pending {
+    background: #fff4d6;
+    color: #a86b00;
+}
+
+.purchase-detail-row {
+    margin: 6px 0;
+    color: #555555;
+    font-size: 14px;
+}
+
+.purchase-detail-row strong {
+    display: inline-block;
+    width: 90px;
+    color: #222222;
+}
+
+.purchase-pin-preview {
+    margin-top: 14px;
+    padding: 12px;
+    background: #fbfbfb;
+    border: 1px solid #eeeeee;
+    border-radius: 10px;
+    color: #444444;
+    font-weight: 700;
+}
+
+.purchase-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.purchase-actions button {
+    height: 42px;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.pin-view-btn {
+    background: #ff6b35;
+    color: #ffffff;
+    border: none;
+}
+
+.product-view-btn,
+.refund-btn {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    color: #333333;
+}
+
+.product-view-btn:hover,
+.refund-btn:hover {
+    background: #f7f7f7;
+}
+
+.empty-purchase-box {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    padding: 80px 20px;
+    text-align: center;
+    color: #777777;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.empty-purchase-box h3 {
+    color: #222222;
+}
+
+/* ===============================
+   핀번호 확인 모달
+================================ */
+
+.pin-modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.pin-modal {
+    width: 520px;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 34px;
+    position: relative;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+    text-align: center;
+}
+
+.pin-modal-close {
+    position: absolute;
+    right: 18px;
+    top: 14px;
+    font-size: 28px;
+    border: none;
+    background: none;
+    color: #666666;
+}
+
+.pin-modal h2 {
+    margin: 0 0 12px;
+    font-size: 26px;
+}
+
+.modal-product-name {
+    margin: 0 0 22px;
+    color: #666666;
+}
+
+.modal-pin-box {
+    height: 72px;
+    border: 1px solid #dddddd;
+    border-radius: 14px;
+    background: #fbfbfb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 18px;
+}
+
+.modal-warning {
+    background: #fff1dd;
+    color: #8a4b1c;
+    border-radius: 12px;
+    padding: 16px;
+    line-height: 1.5;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.modal-button-area {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.outline-btn,
+.orange-btn {
+    width: 130px;
+    height: 44px;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.outline-btn {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    color: #333333;
+}
+
+.orange-btn {
+    background: #ff6b35;
+    color: #ffffff;
+    border: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .purchase-history-card {
+        grid-template-columns: 1fr;
+    }
+
+    .purchase-image {
+        height: 180px;
+    }
+
+    .purchase-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .purchase-actions button {
+        flex: 1;
+    }
+
+    .purchase-filter-box {
+        flex-wrap: wrap;
+    }
+}
+
+/* ===============================
+   판매내역 / 내가 판매한 상품
+================================ */
+
+.my-product-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.summary-card span {
+    display: block;
+    color: #777777;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.summary-card strong {
+    font-size: 30px;
+    color: #ff6b35;
+}
+
+.my-product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.my-product-card {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 150px 1fr 190px;
+    gap: 24px;
+    align-items: center;
+}
+
+.my-product-image {
+    height: 130px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: center;
+    padding: 12px;
+}
+
+.my-product-info h3 {
+    margin: 0 0 10px;
+    font-size: 21px;
+}
+
+.my-product-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.my-product-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.my-product-badge.personal {
+    background: #fff1dd;
+    color: #ff6b35;
+}
+
+.my-product-badge.platform {
+    background: #e8f0ff;
+    color: #2563eb;
+}
+
+.my-product-badge.selling {
+    background: #e8f7ee;
+    color: #16834a;
+}
+
+.my-product-badge.pending {
+    background: #fff7d6;
+    color: #8a6100;
+}
+
+.my-product-badge.sold-out {
+    background: #eeeeee;
+    color: #555555;
+}
+
+.my-product-badge.expired {
+    background: #ffe8e8;
+    color: #d93d3d;
+}
+
+.my-product-detail-row {
+    margin: 6px 0;
+    color: #555555;
+    font-size: 14px;
+}
+
+.my-product-detail-row strong {
+    display: inline-block;
+    width: 90px;
+    color: #222222;
+}
+
+.my-product-pin-box {
+    margin-top: 14px;
+    padding: 12px;
+    background: #fbfbfb;
+    border: 1px solid #eeeeee;
+    border-radius: 10px;
+    color: #444444;
+    font-weight: 700;
+}
+
+.my-product-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.my-product-actions button {
+    height: 42px;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.edit-product-btn {
+    background: #ff6b35;
+    color: #ffffff;
+    border: none;
+}
+
+.status-product-btn,
+.view-product-btn {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    color: #333333;
+}
+
+.delete-product-btn {
+    background: #ffffff;
+    border: 1px solid #ffb3b3;
+    color: #d93d3d;
+}
+
+.status-product-btn:hover,
+.view-product-btn:hover,
+.delete-product-btn:hover {
+    background: #f7f7f7;
+}
+
+.empty-my-product-box {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    padding: 80px 20px;
+    text-align: center;
+    color: #777777;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.empty-my-product-box h3 {
+    color: #222222;
+}
+
+.empty-my-product-box button {
+    margin-top: 16px;
+    width: 160px;
+    height: 44px;
+    border-radius: 10px;
+    background: #ff6b35;
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.status-select-box {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 24px 0;
+}
+
+.status-select-box button {
+    width: 110px;
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid #dddddd;
+    background: #ffffff;
+    font-weight: 800;
+}
+
+.status-select-box button:hover {
+    background: #ff6b35;
+    color: #ffffff;
+    border-color: #ff6b35;
+}
+
+@media (max-width: 900px) {
+    .my-product-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .my-product-card {
+        grid-template-columns: 1fr;
+    }
+
+    .my-product-image {
+        height: 180px;
+    }
+
+    .my-product-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .my-product-actions button {
+        flex: 1;
+    }
+}
+
+/* ===============================
+   상품 수정 페이지
+================================ */
+
+.edit-page {
+    min-height: calc(100vh - 78px);
+    background: #fafafa;
+    padding: 50px 24px;
+}
+
+.edit-container {
+    max-width: 1050px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    overflow: hidden;
+}
+
+.edit-left {
+    background: linear-gradient(180deg, #fff1dd 0%, #fff8ef 100%);
+    border-right: 1px solid #eeeeee;
+    padding: 54px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.edit-image-preview {
+    width: 210px;
+    height: 210px;
+    border-radius: 18px;
+    border: 2px solid #e2d3c5;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 64px;
+    font-weight: 800;
+    overflow: hidden;
+    margin-bottom: 18px;
+}
+
+.edit-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.edit-file-btn {
+    width: 160px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid #dddddd;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.edit-file-btn:hover {
+    background: #f7f7f7;
+}
+
+.edit-notice {
+    width: 100%;
+    margin-top: 30px;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+    padding: 18px;
+}
+
+.edit-notice strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #ff6b35;
+}
+
+.edit-notice p {
+    margin: 0;
+    color: #666666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.edit-form-area {
+    padding: 52px 70px;
+}
+
+.edit-form-area h1 {
+    margin: 0 0 8px;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.edit-subtitle {
+    margin: 0 0 34px;
+    color: #777777;
+}
+
+.edit-form-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.edit-form-row label {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.edit-form-row input,
+.edit-form-row select,
+.edit-form-row textarea {
+    width: 100%;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    outline: none;
+    background: #ffffff;
+}
+
+.edit-form-row input,
+.edit-form-row select {
+    height: 42px;
+}
+
+.edit-form-row textarea {
+    height: 110px;
+    padding-top: 12px;
+    resize: none;
+}
+
+.edit-form-row input:focus,
+.edit-form-row select:focus,
+.edit-form-row textarea:focus {
+    border-color: #ff7a45;
+    box-shadow: 0 0 0 3px rgba(255, 122, 69, 0.12);
+}
+
+.edit-button-area {
+    margin-top: 32px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.edit-button-area button {
+    width: 120px;
+    height: 44px;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.edit-cancel-btn {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    color: #333333;
+}
+
+.edit-delete-btn {
+    background: #ffffff;
+    border: 1px solid #ffb3b3;
+    color: #d93d3d;
+}
+
+.edit-submit-btn {
+    background: #ff6b35;
+    color: #ffffff;
+    border: none;
+}
+
+.edit-cancel-btn:hover,
+.edit-delete-btn:hover {
+    background: #f7f7f7;
+}
+
+.edit-submit-btn:hover {
+    background: #f05c25;
+}
+
+@media (max-width: 900px) {
+    .edit-container {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-left {
+        border-right: none;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .edit-form-area {
+        padding: 36px 24px;
+    }
+
+    .edit-form-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .edit-button-area {
+        flex-direction: column;
+    }
+
+    .edit-button-area button {
+        width: 100%;
+    }
+}
+
+/* ===============================
+   검색 결과 페이지
+================================ */
+
+.search-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: calc(100vh - 78px);
+    padding: 38px 48px 70px;
+    background: #fafafa;
+}
+
+.search-title-box {
+    margin-bottom: 26px;
+}
+
+.search-title-box h1 {
+    margin: 0 0 10px;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.search-title-box p {
+    margin: 0;
+    color: #666666;
+    font-size: 16px;
+}
+
+.search-title-box strong {
+    color: #ff6b35;
+}
+
+.popular-keyword-box {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.popular-keyword-box h2 {
+    margin: 0 0 16px;
+    font-size: 20px;
+}
+
+.popular-keyword-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.popular-keyword {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid #dddddd;
+    background: #ffffff;
+    color: #444444;
+    font-weight: 700;
+}
+
+.popular-keyword:hover {
+    background: #fff1dd;
+    color: #ff6b35;
+    border-color: #ffb37f;
+}
+
+.search-filter-box {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.search-filter-box select {
+    margin-left: auto;
+    width: 140px;
+    height: 38px;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    padding: 0 10px;
+    outline: none;
+    background: #ffffff;
+    font-weight: 700;
+}
+
+.search-result-info {
+    margin: 0 0 18px;
+    color: #555555;
+    font-weight: 700;
+}
+
+.search-product-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 22px;
+}
+
+.search-product-card {
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.search-product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+}
+
+.search-product-image {
+    height: 140px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: center;
+    padding: 12px;
+}
+
+.search-product-type {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.search-product-type.personal {
+    background: #fff1dd;
+    color: #ff6b35;
+}
+
+.search-product-type.platform {
+    background: #e8f0ff;
+    color: #2563eb;
+}
+
+.search-product-card h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    line-height: 1.4;
+    min-height: 44px;
+}
+
+.search-origin-price {
+    margin: 0 0 7px;
+    color: #777777;
+    font-size: 14px;
+}
+
+.search-sale-price {
+    margin: 0 0 10px;
+    color: #ff1e1e;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.search-product-meta {
+    display: flex;
+    justify-content: space-between;
+    color: #777777;
+    font-size: 13px;
+}
+
+.empty-search-box {
+    grid-column: 1 / -1;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 18px;
+    padding: 90px 20px;
+    text-align: center;
+    color: #777777;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.empty-search-box h3 {
+    margin: 0 0 10px;
+    color: #222222;
+    font-size: 22px;
+}
+
+@media (max-width: 1100px) {
+    .search-product-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 760px) {
+    .search-page {
+        padding: 24px;
+    }
+
+    .search-product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .search-filter-box {
+        flex-wrap: wrap;
+    }
+
+    .search-filter-box select {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+/* ===============================
+   결제 모달
+================================ */
+
+.payment-modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.48);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+}
+
+.payment-modal {
+    width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 34px;
+    position: relative;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+}
+
+.payment-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    border: none;
+    background: none;
+    font-size: 30px;
+    color: #666666;
+}
+
+.payment-modal h2 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.payment-subtitle {
+    margin: 0 0 24px;
+    color: #777777;
+    text-align: center;
+}
+
+.payment-product-box {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    background: #fbfbfb;
+    margin-bottom: 22px;
+}
+
+.payment-product-image {
+    height: 120px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: center;
+    padding: 10px;
+}
+
+.payment-product-info h3 {
+    margin: 10px 0 10px;
+    font-size: 18px;
+}
+
+.payment-product-info p {
+    margin: 0 0 8px;
+    color: #777777;
+}
+
+.payment-product-info strong {
+    color: #ff1e1e;
+    font-size: 20px;
+}
+
+.payment-type-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.payment-type-badge.personal {
+    background: #fff1dd;
+    color: #ff6b35;
+}
+
+.payment-type-badge.platform {
+    background: #e8f0ff;
+    color: #2563eb;
+}
+
+.payment-price-box {
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
+
+.payment-price-row,
+.payment-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    color: #444444;
+}
+
+.payment-price-row strong {
+    font-size: 16px;
+}
+
+.payment-point-row {
+    margin: 16px 0;
+}
+
+.payment-point-row label {
+    display: block;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.payment-point-row div {
+    display: flex;
+    gap: 8px;
+}
+
+.payment-point-row input {
+    flex: 1;
+    height: 42px;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    padding: 0 12px;
+    outline: none;
+}
+
+.payment-point-row input:focus {
+    border-color: #ff7a45;
+    box-shadow: 0 0 0 3px rgba(255, 122, 69, 0.12);
+}
+
+.payment-point-row button {
+    width: 92px;
+    height: 42px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    font-weight: 800;
+}
+
+.payment-total-row {
+    border-top: 1px solid #eeeeee;
+    padding-top: 16px;
+    margin-bottom: 0;
+}
+
+.payment-total-row strong {
+    color: #ff6b35;
+    font-size: 24px;
+}
+
+.payment-agree {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 14px;
+    color: #444444;
+}
+
+.payment-agree input {
+    width: 16px;
+    height: 16px;
+}
+
+.payment-warning {
+    background: #fff1dd;
+    color: #8a4b1c;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 22px;
+}
+
+.payment-button-area {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.payment-button-area button {
+    width: 130px;
+    height: 44px;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.payment-cancel-btn {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    color: #333333;
+}
+
+.payment-submit-btn {
+    background: #ff6b35;
+    color: #ffffff;
+    border: none;
+}
+
+.payment-cancel-btn:hover {
+    background: #f7f7f7;
+}
+
+.payment-submit-btn:hover {
+    background: #f05c25;
+}
+
+@media (max-width: 640px) {
+    .payment-modal {
+        width: calc(100% - 32px);
+        padding: 28px 22px;
+    }
+
+    .payment-product-box {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-button-area {
+        flex-direction: column;
+    }
+
+    .payment-button-area button {
+        width: 100%;
+    }
+}
+
+/* ===============================
+   환불 요청 모달
+================================ */
+
+.refund-modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 120;
+}
+
+.refund-modal {
+    width: 540px;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 34px;
+    position: relative;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+}
+
+.refund-modal-close {
+    position: absolute;
+    right: 18px;
+    top: 14px;
+    font-size: 28px;
+    border: none;
+    background: none;
+    color: #666666;
+}
+
+.refund-modal h2 {
+    margin: 0 0 12px;
+    font-size: 26px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.refund-info-box {
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+    padding: 18px;
+    background: #fbfbfb;
+    margin-bottom: 22px;
+}
+
+.refund-info-box div {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.refund-info-box div:last-child {
+    margin-bottom: 0;
+}
+
+.refund-info-box span {
+    color: #666666;
+}
+
+.refund-info-box strong {
+    color: #222222;
+}
+
+.refund-form-row {
+    margin-bottom: 16px;
+}
+
+.refund-form-row label {
+    display: block;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.refund-form-row select,
+.refund-form-row textarea {
+    width: 100%;
+    border: 1px solid #dddddd;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 14px;
+    outline: none;
+    background: #ffffff;
+}
+
+.refund-form-row select {
+    height: 42px;
+}
+
+.refund-form-row textarea {
+    height: 110px;
+    padding-top: 12px;
+    resize: none;
+}
+
+.refund-form-row select:focus,
+.refund-form-row textarea:focus {
+    border-color: #ff7a45;
+    box-shadow: 0 0 0 3px rgba(255, 122, 69, 0.12);
+}
+
+.refund-warning {
+    background: #fff1dd;
+    color: #8a4b1c;
+    border-radius: 12px;
+    padding: 14px;
+    line-height: 1.5;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
