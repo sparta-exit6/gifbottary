@@ -173,6 +173,9 @@ function renderMyProducts() {
 function createMyProductCard(product) {
     const statusText = getSaleStatusText(product.saleStatus);
     const statusClass = getSaleStatusClass(product.saleStatus);
+    const saleType = product.saleType || product.type;
+    const saleTypeText = saleType === "PLATFORM" ? "관리자 판매" : "개인 판매";
+    const saleTypeClass = saleType === "PLATFORM" ? "platform" : "personal";
 
     return `
         <article class="my-product-card">
@@ -182,7 +185,7 @@ function createMyProductCard(product) {
 
             <div class="my-product-info">
                 <div class="my-product-badges">
-                    <span class="my-product-badge personal">개인 판매</span>
+                    <span class="my-product-badge ${saleTypeClass}">${saleTypeText}</span>
                     <span class="my-product-badge ${statusClass}">${statusText}</span>
                 </div>
 
@@ -226,9 +229,6 @@ function createMyProductCard(product) {
                     상태 변경
                 </button>
 
-                <button class="delete-product-btn" onclick="deleteMyProduct(${product.saleId})">
-                    삭제하기
-                </button>
             </div>
         </article>
     `;

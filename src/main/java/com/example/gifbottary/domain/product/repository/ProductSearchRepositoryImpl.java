@@ -127,8 +127,10 @@ public class ProductSearchRepositoryImpl implements ProductSearchRepository {
                         sale.saleType,
                         product.brand,
                         product.productName,
+                        product.faceValue,
                         sale.salePrice,
                         sale.saleStatus,
+                        sale.expireAt,
                         sale.createdAt
                 ))
                 .from(sale)

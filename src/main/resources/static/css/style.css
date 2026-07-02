@@ -1982,6 +1982,11 @@ button {
     color: #ff6b35;
 }
 
+.my-product-badge.platform {
+    background: #e8f0ff;
+    color: #2563eb;
+}
+
 .my-product-badge.selling {
     background: #e8f7ee;
     color: #16834a;

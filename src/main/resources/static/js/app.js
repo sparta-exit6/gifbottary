@@ -385,7 +385,17 @@ async function submitGifticon() {
         return;
     }
 
+    let saleType;
+    try {
+        saleType = await resolveSaleTypeByCurrentUser(token);
+    } catch (error) {
+        console.error(error);
+        alert("사용자 정보를 불러오지 못했습니다.");
+        return;
+    }
+
     const gifticonName = document.getElementById("gifticonName").value.trim();
+    const brand = document.getElementById("brand").value.trim();
     const originalPrice = document.getElementById("originalPrice").value.trim();
     const salePrice = document.getElementById("salePrice").value.trim();
     const pinNumber = document.getElementById("pinNumber").value.trim();
@@ -394,6 +404,11 @@ async function submitGifticon() {
 
     if (!gifticonName) {
         alert("기프트카드 이름을 입력해주세요.");
+        return;
+    }
+
+    if (!brand) {
+        alert("브랜드를 입력해주세요.");
         return;
     }
 
@@ -417,8 +432,18 @@ async function submitGifticon() {
         return;
     }
 
-    if (!pinNumber) {
+    const pinNumbers = pinNumber
+        .split(/\r?\n|,/)
+        .map(pin => pin.trim())
+        .filter(pin => pin.length > 0);
+
+    if (pinNumbers.length === 0) {
         alert("핀 번호를 입력해주세요.");
+        return;
+    }
+
+    if (saleType === "PERSONAL" && pinNumbers.length !== 1) {
+        alert("개인 판매 기프트카드는 핀 번호를 1개만 등록할 수 있습니다.");
         return;
     }
 
@@ -432,18 +457,19 @@ async function submitGifticon() {
         return;
     }
 
-    const request = {
-        saleType: "PERSONAL",
-        brand: "테스트 브랜드",
-        productName: gifticonName,
-        faceValue: Number(originalPrice),
-        expireAt: expiredAt,
-        salePrice: Number(salePrice),
-        pinNumber: pinNumber,
-        imageUrl: null
-    };
-
     try {
+        const request = {
+            saleType: saleType,
+            brand: brand,
+            productName: gifticonName,
+            faceValue: Number(originalPrice),
+            expireAt: expiredAt,
+            salePrice: Number(salePrice),
+            pinNumber: saleType === "PERSONAL" ? pinNumbers[0] : null,
+            pinNumbers: saleType === "PLATFORM" ? pinNumbers : null,
+            imageUrl: null
+        };
+
         const response = await fetch("/api/v1/products", {
             method: "POST",
             headers: {
@@ -467,6 +493,23 @@ async function submitGifticon() {
         console.error(error);
         alert("서버와 연결할 수 없습니다.");
     }
+}
+
+async function resolveSaleTypeByCurrentUser(token) {
+    const response = await fetch("/api/v1/auth/me", {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.success === false) {
+        throw new Error(result.message || "사용자 정보를 불러오지 못했습니다.");
+    }
+
+    return result.data?.role === "ADMIN" ? "PLATFORM" : "PERSONAL";
 }
 
 async function logout() {

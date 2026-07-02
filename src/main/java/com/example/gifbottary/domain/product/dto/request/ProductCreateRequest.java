@@ -21,6 +21,33 @@ public record ProductCreateRequest(
         @NotNull @Min(1) Integer salePrice,
         String pinNumber,
         List<String> pinNumbers,
+        String description,
         String imageUrl
 ) {
+        public ProductCreateRequest(
+                Long productId,
+                SaleType saleType,
+                String brand,
+                String productName,
+                Integer faceValue,
+                LocalDate expireAt,
+                Integer salePrice,
+                String pinNumber,
+                List<String> pinNumbers,
+                String description
+        ) {
+                this(
+                        productId,
+                        saleType,
+                        brand,
+                        productName,
+                        faceValue,
+                        expireAt,
+                        salePrice,
+                        pinNumber,
+                        pinNumbers,
+                        description,
+                        null
+                );
+        }
 }

@@ -227,6 +227,10 @@ function createPurchaseCard(purchase) {
                     상품 조회
                 </button>
 
+                <button class="product-view-btn" onclick="location.href='./purchase-detail.html?purchaseId=${purchase.purchaseId || ""}'">
+                    상세보기
+                </button>
+
                 ${canRequestRefund(purchase)
         ? `<button class="refund-btn" onclick="requestRefund(${purchase.purchaseId})">환불 요청</button>`
         : ""
@@ -285,18 +289,15 @@ async function openPinModal(purchaseId) {
 
     const modalPinNumber = document.getElementById("modalPinNumber");
     const pinRevealBtn = document.getElementById("pinRevealBtn");
-    const purchaseConfirmBtn = document.getElementById("purchaseConfirmBtn");
 
     modalPinNumber.textContent = selectedPurchase.pinOpened
         ? selectedPurchase.pinNumber || "확인된 핀번호"
         : "****-****-****-****";
 
     pinRevealBtn.classList.remove("hidden");
-    purchaseConfirmBtn.classList.add("hidden");
 
     if (selectedPurchase.purchaseType === "PLATFORM" && !selectedPurchase.pinOpened) {
         pinRevealBtn.textContent = "핀번호 확인";
-        purchaseConfirmBtn.classList.remove("hidden");
     } else {
         pinRevealBtn.textContent = "핀번호 보기";
     }
@@ -331,7 +332,7 @@ async function confirmPurchase() {
         return;
     }
 
-    if (!confirm("핀번호를 확인 완료 처리하시겠습니까?\n확인 완료 후에는 환불이 제한될 수 있습니다.")) {
+    if (!confirm("핀번호를 확인하시겠습니까?\n확인 후에는 환불이 제한될 수 있습니다.")) {
         return;
     }
 

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>구매 상세 | 기프보따리</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.href='./index.html'">
+        <span class="logo-icon">🎁</span>
+        <span>기프보따리</span>
+    </div>
+
+    <nav class="nav">
+        <button onclick="location.href='./purchases.html'">구매내역</button>
+        <button onclick="location.href='./mypage.html'">마이페이지</button>
+        <button onclick="logout()">로그아웃</button>
+    </nav>
+</header>
+
+<main class="detail-page">
+    <section class="detail-container">
+        <div id="purchaseDetailImage" class="detail-image bg-money">
+            GIFT CARD
+        </div>
+
+        <div class="detail-info">
+            <span id="purchaseSaleType" class="sale-badge">-</span>
+            <h1 id="purchaseProductName">구매 상품</h1>
+
+            <p id="purchaseBrand" class="detail-origin-price">브랜드 -</p>
+            <p id="purchaseTotalPrice" class="detail-sale-price">결제 금액 0원</p>
+
+            <div class="detail-meta">
+                <p><strong>구매 상태</strong> <span id="purchaseStatus">-</span></p>
+                <p><strong>핀 상태</strong> <span id="purchasePinStatus">-</span></p>
+                <p><strong>수량</strong> <span id="purchaseQuantity">-</span></p>
+                <p><strong>유효기간</strong> <span id="purchaseExpireAt">-</span></p>
+                <p><strong>구매일</strong> <span id="purchasePurchasedAt">-</span></p>
+                <p><strong>구매확정일</strong> <span id="purchaseConfirmedAt">-</span></p>
+            </div>
+
+            <div class="detail-description">
+                <strong>핀 번호</strong>
+                <p id="purchasePinNumber">****-****-****-****</p>
+            </div>
+
+            <div class="detail-actions">
+                <button class="buy-btn" onclick="location.href='./purchases.html'">목록으로</button>
+                <button id="revealPinButton" class="buy-btn hidden" onclick="revealPurchasePin()">핀번호 확인</button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script src="./js/app.js"></script>
+<script src="./js/purchase-detail.js"></script>
+</body>
+</html>

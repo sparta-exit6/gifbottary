@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -56,6 +57,9 @@ public class GifticonSale extends BaseEntity {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<GifticonPin> pins = new ArrayList<>();
 
@@ -72,9 +76,17 @@ public class GifticonSale extends BaseEntity {
     /**
      * 판매글의 수정 가능한 정보만 갱신합니다.
      */
-    public void updateSaleInfo(Integer salePrice) {
+    public void updateSaleInfo(Integer salePrice, LocalDate expireAt, String description) {
         if (salePrice != null) {
             this.salePrice = salePrice;
+        }
+
+        if (expireAt != null) {
+            this.expireAt = expireAt;
+        }
+
+        if (description != null) {
+            this.description = description.trim();
         }
     }
 
@@ -144,6 +156,11 @@ public class GifticonSale extends BaseEntity {
             return;
         }
 
+        if (saleStatus == SaleStatus.SOLD_OUT && this.stock == 0) {
+            this.saleStatus = SaleStatus.SOLD_OUT;
+            return;
+        }
+
         throw new IllegalStateException("현재 상태에서는 요청한 판매 상태로 변경할 수 없습니다.");
     }
 
@@ -177,9 +194,10 @@ public class GifticonSale extends BaseEntity {
         }
 
         List<GifticonPin> availablePins = this.pins.stream()
-            .filter(GifticonPin::isAvailable)
-            .limit(quantity)
-            .toList();
+                .filter(GifticonPin::isAvailable)
+                .sorted(Comparator.comparing(GifticonPin::getId).reversed())
+                .limit(quantity)
+                .toList();
 
         if (availablePins.size() < quantity) {
             throw new IllegalStateException("판매 가능한 핀이 부족합니다.");
