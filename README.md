@@ -346,6 +346,7 @@ spring:
 
 ## 🔒 7. 동시성 제어 - 비관적 / 낙관적 / 분산 락 비교 분석 및 선택 근거
 ### [Wiki - 💡선착순 쿠폰 발급 시나리오 ‐ 동시성 제어](https://github.com/sparta-exit6/gifbottary/wiki/%F0%9F%92%A1-%EC%84%A0%EC%B0%A9%EC%88%9C-%EC%BF%A0%ED%8F%B0-%EB%B0%9C%EA%B8%89-%EC%8B%9C%EB%82%98%EB%A6%AC%EC%98%A4-%E2%80%90-%EB%8F%99%EC%8B%9C%EC%84%B1-%EC%A0%9C%EC%96%B4)
+### [Wiki - [Troubleshooting] 비관적 락의 한계점 ‐ K6 부하 테스트](https://github.com/sparta-exit6/gifbottary/wiki/%F0%9F%9A%A8-%5BTroubleshooting%5D-%EB%B9%84%EA%B4%80%EC%A0%81-%EB%9D%BD%EC%9D%98-%ED%95%9C%EA%B3%84%EC%A0%90-%E2%80%90-K6-%EB%B6%80%ED%95%98-%ED%85%8C%EC%8A%A4%ED%8A%B8)
 
 ---
 ## 🚀 8. 캐싱을 이용한 성능 개선
