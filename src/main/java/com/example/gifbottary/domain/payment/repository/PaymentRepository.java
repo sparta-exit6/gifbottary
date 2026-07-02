@@ -1,5 +1,6 @@
 package com.example.gifbottary.domain.payment.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.gifbottary.domain.payment.entity.Payment;
+import com.example.gifbottary.domain.payment.entity.PaymentStatus;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
@@ -16,6 +18,23 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 	Optional<Payment> findByPurchaseId(Long purchaseId);
 
 	boolean existsByPurchaseId(Long purchaseId);
+
+	@Query("""
+	SELECT COALESCE(SUM(pu.quantity), 0)
+	FROM Payment p
+	JOIN p.purchase pu
+	WHERE pu.sale.id = :saleId
+	  AND p.status = :status
+	""")
+	long sumQuantityBySaleIdAndStatus(
+		@Param("saleId") Long saleId,
+		@Param("status") PaymentStatus status
+	);
+
+	List<Payment> findAllByStatusAndCreatedAtBefore(
+		PaymentStatus status,
+		LocalDateTime createdAt
+	);
 
 	/**
 	 * Payment 조회

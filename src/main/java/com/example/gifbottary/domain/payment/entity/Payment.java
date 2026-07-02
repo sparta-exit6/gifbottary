@@ -71,6 +71,10 @@ public class Payment extends BaseEntity {
 		changeStatus(PaymentStatus.FAILED);
 	}
 
+	public void expire() {
+		changeStatus(PaymentStatus.EXPIRED);
+	}
+
 	public void refund() {
 		changeStatus(PaymentStatus.REFUNDED);
 		this.cancelledAt = LocalDateTime.now();

@@ -1,5 +1,6 @@
 package com.example.gifbottary.domain.payment.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -35,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 @Slf4j
 public class PaymentService {
 
+	private static final long PAYMENT_READY_EXPIRE_MINUTES = 10L;
+
 	private final PaymentRepository paymentRepository;
 	private final PurchaseRepository purchaseRepository;
 	private final GifticonSaleRepository gifticonSaleRepository;
@@ -49,12 +52,20 @@ public class PaymentService {
 	 */
 	@Transactional
 	public PaymentCreateResponse createPayment(Long buyerId, PaymentCreateRequest request) {
+		expireReadyPayments();
+
 		User buyer = entityManager.getReference(User.class, buyerId);
 
 		GifticonSale sale = gifticonSaleRepository.findWithLockById(request.saleId())
 			.orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
 
-		if (sale.countAvailablePins() < request.quantity()) {
+		long reservedQuantity = paymentRepository.sumQuantityBySaleIdAndStatus(
+			sale.getId(),
+			PaymentStatus.READY
+		);
+		long sellableQuantity = sale.countAvailablePins() - reservedQuantity;
+
+		if (sellableQuantity < request.quantity()) {
 			throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
 		}
 
@@ -65,6 +76,13 @@ public class PaymentService {
 		Payment savedPayment = paymentRepository.save(payment);
 
 		return PaymentCreateResponse.from(savedPayment);
+	}
+
+	private void expireReadyPayments() {
+		LocalDateTime expiredBefore = LocalDateTime.now().minusMinutes(PAYMENT_READY_EXPIRE_MINUTES);
+
+		paymentRepository.findAllByStatusAndCreatedAtBefore(PaymentStatus.READY, expiredBefore)
+			.forEach(Payment::expire);
 	}
 
 	/**
